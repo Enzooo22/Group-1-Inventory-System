@@ -1,4 +1,5 @@
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.util.*;
@@ -6,82 +7,177 @@ import java.awt.*;
 
 public class Main extends JFrame implements ActionListener {
 
+    private JLabel lblTitle, lblTotal, lblLowStock;
+    private JTextField txtSearch;
+    private JTable tblProducts;
+    private DefaultTableModel model;
 
-    private DefaultListModel <String> model;
-    private LinkedList <String> linkedList;
-    private JList <String> list;
-    private JTextField txt;
-    private JButton add, del, upd;
-    private JScrollPane scrollPane;
+    private JButton btnDashboard, btnProducts, btnSuppliers;
+    private JButton btnReports, btnAdd, btnUpdate;
+    private JButton btnDelete, btnSearch, btnLogout;
+
+    private JPanel sidebar, content;
 
     Main() {
-        setTitle("Inventory System");
-        setSize(300, 350);
-        setVisible(true);
+
+        setTitle("Inventory Management System");
+        setSize(1000, 650);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(null);
 
-        linkedList = new LinkedList<>();
-        model = new DefaultListModel<>();
-        list = new JList<>(model);
+        lblTitle = new JLabel("INVENTORY MANAGEMENT SYSTEM");
+        lblTitle.setBounds(250, 15, 400, 30);
+        add(lblTitle);
 
-        add = new JButton("Add");
-        add.setBounds(180, 200, 100, 30);
-        add(add);
+        sidebar = new JPanel();
+        sidebar.setLayout(null);
+        sidebar.setBounds(10, 60, 180, 540);
+        add(sidebar);
 
-        del = new JButton("Remove");
-        del.setBounds(180, 240, 100, 30);
-        add(del);
+        btnDashboard = new JButton("Dashboard");
+        btnDashboard.setBounds(10, 20, 160, 35);
+        sidebar.add(btnDashboard);
 
-        upd = new JButton("Update");
-        upd.setBounds(180, 280, 100, 30);
-        add(upd);
+        btnProducts = new JButton("Products");
+        btnProducts.setBounds(10, 65, 160, 35);
+        sidebar.add(btnProducts);
 
-        scrollPane = new JScrollPane(list);
-        scrollPane.setBounds(10, 10, 280, 180);
-        add(scrollPane);
+        btnSuppliers = new JButton("Suppliers");
+        btnSuppliers.setBounds(10, 110, 160, 35);
+        sidebar.add(btnSuppliers);
 
-        txt = new JTextField();
-        txt.setBounds(10, 200, 160, 30);
-        add(txt);
+        btnReports = new JButton("Reports");
+        btnReports.setBounds(10, 155, 160, 35);
+        sidebar.add(btnReports);
 
-        add.addActionListener(this);
-        del.addActionListener(this);
-        upd.addActionListener(this);
+        btnLogout = new JButton("Logout");
+        btnLogout.setBounds(10, 470, 160, 35);
+        sidebar.add(btnLogout);
 
+        content = new JPanel();
+        content.setLayout(null);
+        content.setBounds(200, 60, 770, 540);
+        add(content);
+
+        JLabel lblDashboard = new JLabel("Dashboard");
+        lblDashboard.setBounds(20, 10, 200, 30);
+        content.add(lblDashboard);
+
+        lblTotal = new JLabel("Total Products: 0");
+        lblTotal.setBounds(20, 50, 200, 40);
+        content.add(lblTotal);
+
+        lblLowStock = new JLabel("Low Stock: 0");
+        lblLowStock.setBounds(250, 50, 200, 40);
+        content.add(lblLowStock);
+
+        txtSearch = new JTextField();
+        txtSearch.setBounds(20, 110, 250, 30);
+        content.add(txtSearch);
+
+        btnSearch = new JButton("Search");
+        btnSearch.setBounds(280, 110, 100, 30);
+        content.add(btnSearch);
+
+        btnAdd = new JButton("Add Product");
+        btnAdd.setBounds(20, 160, 120, 30);
+        content.add(btnAdd);
+
+        btnUpdate = new JButton("Update");
+        btnUpdate.setBounds(150, 160, 100, 30);
+        content.add(btnUpdate);
+
+        btnDelete = new JButton("Delete");
+        btnDelete.setBounds(260, 160, 100, 30);
+        content.add(btnDelete);
+
+        String[] columns = {
+                "ID", "Product Name", "Category",
+                "Quantity", "Price", "Supplier ID"
+        };
+
+        model = new DefaultTableModel(columns, 0);
+        tblProducts = new JTable(model);
+
+        JScrollPane scrollPane = new JScrollPane(tblProducts);
+        scrollPane.setBounds(20, 210, 730, 300);
+        content.add(scrollPane);
+
+        btnDashboard.addActionListener(this);
+        btnProducts.addActionListener(this);
+        btnSuppliers.addActionListener(this);
+        btnReports.addActionListener(this);
+        btnAdd.addActionListener(this);
+        btnUpdate.addActionListener(this);
+        btnDelete.addActionListener(this);
+        btnSearch.addActionListener(this);
+        btnLogout.addActionListener(this);
+
+        setLocationRelativeTo(null);
+        setVisible(true);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == add) {
-            String item = txt.getText();
 
-            if (!item.isEmpty()) {
-                linkedList.add(item);
-                model.addElement(item);
-                txt.setText("");
+        if (e.getSource() == btnDashboard) {
+            JOptionPane.showMessageDialog(this, "Dashboard");
+        }
+
+        if (e.getSource() == btnProducts) {
+            JOptionPane.showMessageDialog(this, "Products");
+        }
+
+        if (e.getSource() == btnSuppliers) {
+            JOptionPane.showMessageDialog(this, "Suppliers");
+        }
+
+        if (e.getSource() == btnReports) {
+            JOptionPane.showMessageDialog(this, "Reports");
+        }
+
+        if (e.getSource() == btnAdd) {
+            JOptionPane.showMessageDialog(this, "Add Product");
+        }
+
+        if (e.getSource() == btnUpdate) {
+            JOptionPane.showMessageDialog(this, "Update Product");
+        }
+
+        if (e.getSource() == btnDelete) {
+            int selectedRow = tblProducts.getSelectedRow();
+
+            if (selectedRow != -1) {
+                model.removeRow(selectedRow);
+                lblTotal.setText(
+                        "Total Products: " + model.getRowCount()
+                );
+            } else {
+                JOptionPane.showMessageDialog(
+                        this, "Please select a product."
+                );
             }
         }
 
-        if (e.getSource() == del) {
-            int selectedIndex = list.getSelectedIndex();
+        if (e.getSource() == btnSearch) {
+            String search = txtSearch.getText().trim();
 
-            if (selectedIndex != -1) {
-                linkedList.remove(selectedIndex);
-                model.remove(selectedIndex);
+            for (int i = 0; i < model.getRowCount(); i++) {
+                String name = model.getValueAt(i, 1).toString();
+
+                if (name.equalsIgnoreCase(search)) {
+                    tblProducts.setRowSelectionInterval(i, i);
+                    return;
+                }
             }
+
+            JOptionPane.showMessageDialog(
+                    this, "Product not found."
+            );
         }
 
-        if (e.getSource() == upd) {
-            int selectedIndex = list.getSelectedIndex();
-            String item = txt.getText();
-
-            if (selectedIndex != -1 && !item.isEmpty()) {
-                linkedList.set(selectedIndex, item);
-                model.set(selectedIndex, item);
-                txt.setText("");
-            }
+        if (e.getSource() == btnLogout) {
+            dispose();
         }
     }
-
 }
