@@ -1,3 +1,4 @@
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionListener;
@@ -17,6 +18,9 @@ public class Main extends JFrame implements ActionListener {
     private JButton btnDelete, btnSearch, btnLogout;
 
     private JPanel sidebar, content;
+
+    
+    private LinkedList<String[]> linkedList = new LinkedList<>();
 
     Main() {
 
@@ -92,8 +96,8 @@ public class Main extends JFrame implements ActionListener {
         content.add(btnDelete);
 
         String[] columns = {
-                "ID", "Product Name", "Category",
-                "Quantity", "Price", "Supplier ID"
+            "ID", "Product Name", "Category",
+            "Quantity", "Price", "Supplier ID"
         };
 
         model = new DefaultTableModel(columns, 0);
@@ -136,43 +140,97 @@ public class Main extends JFrame implements ActionListener {
             JOptionPane.showMessageDialog(this, "Reports");
         }
 
+        
         if (e.getSource() == btnAdd) {
-            JOptionPane.showMessageDialog(this, "Add Product");
-        }
 
-        if (e.getSource() == btnUpdate) {
-            JOptionPane.showMessageDialog(this, "Update Product");
-        }
+            String id = JOptionPane.showInputDialog(
+                this, "Enter Product ID:"
+            );
 
-        if (e.getSource() == btnDelete) {
-            int selectedRow = tblProducts.getSelectedRow();
+            if (id != null && !id.trim().isEmpty()) {
 
-            if (selectedRow != -1) {
-                model.removeRow(selectedRow);
-                lblTotal.setText(
-                        "Total Products: " + model.getRowCount()
-                );
+                boolean exists = false;
+
+                for (String[] product : linkedList) {
+                    if (product[0].equals(id.trim())) {
+                        exists = true;
+                        break;
+                    }
+                }
+
+                if (exists) {
+                    JOptionPane.showMessageDialog(
+                        this, "Product ID already exists!"
+                    );
+                } else {
+                    String[] product = {id.trim()};
+
+                    
+                    linkedList.add(product);
+
+
+                    model.addRow(new Object[]{
+                        id.trim(), "", "", "", "", ""
+                    });
+
+                    lblTotal.setText(
+                        "Total Products: " + linkedList.size()
+                    );
+
+                    JOptionPane.showMessageDialog(
+                        this, "Product ID added!"
+                    );
+                }
+
             } else {
                 JOptionPane.showMessageDialog(
-                        this, "Please select a product."
+                    this, "Please enter Product ID!"
                 );
             }
         }
 
+        
+        if (e.getSource() == btnUpdate) {
+            JOptionPane.showMessageDialog(
+                this, "Update Product"
+            );
+        }
+
+        
+        if (e.getSource() == btnDelete) {
+
+            int selectedRow = tblProducts.getSelectedRow();
+
+            if (selectedRow != -1) {
+                linkedList.remove(selectedRow);
+                model.removeRow(selectedRow);
+
+                lblTotal.setText(
+                    "Total Products: " + linkedList.size()
+                );
+            } else {
+                JOptionPane.showMessageDialog(
+                    this, "Please select a product."
+                );
+            }
+        }
+
+        
         if (e.getSource() == btnSearch) {
+
             String search = txtSearch.getText().trim();
 
             for (int i = 0; i < model.getRowCount(); i++) {
-                String name = model.getValueAt(i, 1).toString();
+                String id = model.getValueAt(i, 0).toString();
 
-                if (name.equalsIgnoreCase(search)) {
+                if (id.equalsIgnoreCase(search)) {
                     tblProducts.setRowSelectionInterval(i, i);
                     return;
                 }
             }
 
             JOptionPane.showMessageDialog(
-                    this, "Product not found."
+                this, "Product not found."
             );
         }
 
@@ -180,4 +238,7 @@ public class Main extends JFrame implements ActionListener {
             dispose();
         }
     }
-}
+
+    
+    }
+
