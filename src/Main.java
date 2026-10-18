@@ -180,17 +180,27 @@ public class Main extends JFrame implements ActionListener {
                 );
                 return;
             }
+             String category = JOptionPane.showInputDialog(
+                this, "Enter Category:"
+            );
 
+            if (category == null || category.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(
+                    this, "Please enter Category!"
+                );
+                return;
+            }
 
+            
             String[] product = {
-                id.trim(), name.trim()
+                id.trim(), name.trim(), category.trim()
             };
 
             linkedList.add(product);
 
             
-            model.addRow(new Object[]{
-                id.trim(), name.trim(), "", "", "", ""
+            model.addRow(new Object[]{  
+                id.trim(), name.trim(), category.trim(),"", "", "", ""
             });
 
             lblTotal.setText(
@@ -198,7 +208,7 @@ public class Main extends JFrame implements ActionListener {
             );
 
             JOptionPane.showMessageDialog(
-                this, "Product Name added successfully!"
+                this, "Product added successfully!"
             );
         }
 
