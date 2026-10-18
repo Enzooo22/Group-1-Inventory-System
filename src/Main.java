@@ -17,8 +17,6 @@ public class Main extends JFrame implements ActionListener {
     private JButton btnDelete, btnSearch, btnLogout;
 
     private JPanel sidebar, content;
-
-    
     private LinkedList<String[]> linkedList = new LinkedList<>();
 
     Main() {
@@ -138,8 +136,6 @@ public class Main extends JFrame implements ActionListener {
         if (e.getSource() == btnReports) {
             JOptionPane.showMessageDialog(this, "Reports");
         }
-
-
         if (e.getSource() == btnAdd) {
 
             String id = JOptionPane.showInputDialog(
@@ -151,9 +147,7 @@ public class Main extends JFrame implements ActionListener {
                     this, "Please enter Product ID!"
                 );
                 return;
-            }
-
-            
+            } 
             boolean exists = false;
 
             for (String[] product : linkedList) {
@@ -190,17 +184,45 @@ public class Main extends JFrame implements ActionListener {
                 );
                 return;
             }
-
             
+            String quantityInput = JOptionPane.showInputDialog(
+                this, "Enter Quantity:"
+            );
+
+            if (quantityInput == null || quantityInput.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(
+                    this, "Please enter Quantity!"
+                );
+                return;
+            }
+
+            int quantity;
+
+            try {
+                quantity = Integer.parseInt(quantityInput.trim());
+
+                if (quantity < 0) {
+                    JOptionPane.showMessageDialog(
+                        this, "Quantity cannot be negative!"
+                    );
+                    return;
+                }
+
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(
+                    this, "Please enter a valid whole number for Quantity!"
+                );
+                return;
+            }
+ 
             String[] product = {
-                id.trim(), name.trim(), category.trim()
+                id.trim(), name.trim(), category.trim(), String.valueOf(quantity)
             };
-
+                
             linkedList.add(product);
-
             
             model.addRow(new Object[]{  
-                id.trim(), name.trim(), category.trim(),"", "", "", ""
+                id.trim(), name.trim(), category.trim(), quantity,"", "", "", ""
             });
 
             lblTotal.setText(
@@ -211,7 +233,6 @@ public class Main extends JFrame implements ActionListener {
                 this, "Product added successfully!"
             );
         }
-
         
         if (e.getSource() == btnUpdate) {
             JOptionPane.showMessageDialog(
@@ -219,7 +240,6 @@ public class Main extends JFrame implements ActionListener {
             );
         }
 
-        
         if (e.getSource() == btnDelete) {
 
             int selectedRow = tblProducts.getSelectedRow();
@@ -232,17 +252,12 @@ public class Main extends JFrame implements ActionListener {
                 lblTotal.setText(
                     "Total Products: " + linkedList.size()
                 );
-
-                
-
             } else {
                 JOptionPane.showMessageDialog(
                     this, "Please select a product."
                 );
             }
         }
-
-        
         if (e.getSource() == btnSearch) {
 
             String search = txtSearch.getText().trim();
@@ -270,7 +285,6 @@ public class Main extends JFrame implements ActionListener {
             }
         }
 
-       
         if (e.getSource() == btnLogout) {
             dispose();
         }
