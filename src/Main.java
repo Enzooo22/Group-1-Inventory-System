@@ -1,4 +1,3 @@
-
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionListener;
@@ -140,53 +139,67 @@ public class Main extends JFrame implements ActionListener {
             JOptionPane.showMessageDialog(this, "Reports");
         }
 
-        
+
         if (e.getSource() == btnAdd) {
 
             String id = JOptionPane.showInputDialog(
                 this, "Enter Product ID:"
             );
 
-            if (id != null && !id.trim().isEmpty()) {
-
-                boolean exists = false;
-
-                for (String[] product : linkedList) {
-                    if (product[0].equals(id.trim())) {
-                        exists = true;
-                        break;
-                    }
-                }
-
-                if (exists) {
-                    JOptionPane.showMessageDialog(
-                        this, "Product ID already exists!"
-                    );
-                } else {
-                    String[] product = {id.trim()};
-
-                    
-                    linkedList.add(product);
-
-
-                    model.addRow(new Object[]{
-                        id.trim(), "", "", "", "", ""
-                    });
-
-                    lblTotal.setText(
-                        "Total Products: " + linkedList.size()
-                    );
-
-                    JOptionPane.showMessageDialog(
-                        this, "Product ID added!"
-                    );
-                }
-
-            } else {
+            if (id == null || id.trim().isEmpty()) {
                 JOptionPane.showMessageDialog(
                     this, "Please enter Product ID!"
                 );
+                return;
             }
+
+            
+            boolean exists = false;
+
+            for (String[] product : linkedList) {
+                if (product[0].equalsIgnoreCase(id.trim())) {
+                    exists = true;
+                    break;
+                }
+            }
+
+            if (exists) {
+                JOptionPane.showMessageDialog(
+                    this, "Product ID already exists!"
+                );
+                return;
+            }
+
+            String name = JOptionPane.showInputDialog(
+                this, "Enter Product Name:"
+            );
+
+            if (name == null || name.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(
+                    this, "Please enter Product Name!"
+                );
+                return;
+            }
+
+
+            String[] product = {
+                id.trim(), name.trim()
+            };
+
+            linkedList.add(product);
+
+            
+            model.addRow(new Object[]{
+                id.trim(), name.trim(), "", "", "", ""
+            });
+
+            lblTotal.setText(
+                "Total Products: " + linkedList.size()
+            );
+
+            JOptionPane.showMessageDialog(
+                this, "Product Name added successfully!"
+            );
         }
 
         
@@ -202,12 +215,16 @@ public class Main extends JFrame implements ActionListener {
             int selectedRow = tblProducts.getSelectedRow();
 
             if (selectedRow != -1) {
+
                 linkedList.remove(selectedRow);
                 model.removeRow(selectedRow);
 
                 lblTotal.setText(
                     "Total Products: " + linkedList.size()
                 );
+
+                
+
             } else {
                 JOptionPane.showMessageDialog(
                     this, "Please select a product."
@@ -219,26 +236,35 @@ public class Main extends JFrame implements ActionListener {
         if (e.getSource() == btnSearch) {
 
             String search = txtSearch.getText().trim();
+            boolean found = false;
 
             for (int i = 0; i < model.getRowCount(); i++) {
+
                 String id = model.getValueAt(i, 0).toString();
 
                 if (id.equalsIgnoreCase(search)) {
                     tblProducts.setRowSelectionInterval(i, i);
-                    return;
+                    found = true;
+                    break;
                 }
             }
 
-            JOptionPane.showMessageDialog(
-                this, "Product not found."
-            );
+            if (found) {
+                JOptionPane.showMessageDialog(
+                    this, "Product found!"
+                );
+            } else {
+                JOptionPane.showMessageDialog(
+                    this, "Product not found."
+                );
+            }
         }
 
+       
         if (e.getSource() == btnLogout) {
             dispose();
         }
     }
 
-    
-    }
 
+    }
