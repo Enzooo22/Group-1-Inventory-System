@@ -214,15 +214,45 @@ public class Main extends JFrame implements ActionListener {
                 );
                 return;
             }
+            String priceInput = JOptionPane.showInputDialog(
+                this, "Enter Price:"
+            );
+
+            if (priceInput == null || priceInput.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(
+                    this, "Please enter Price!"
+                );
+                return;
+            }
+
+            double price;
+
+            try {
+                price = Double.parseDouble(priceInput.trim());
+
+                if (price < 0) {
+                    JOptionPane.showMessageDialog(
+                        this, "Price cannot be negative!"
+                    );
+                    return;
+                }
+
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(
+                    this, "Please enter a valid number for Price!"
+                );
+                return;
+            }
+
  
             String[] product = {
-                id.trim(), name.trim(), category.trim(), String.valueOf(quantity)
+                id.trim(), name.trim(), category.trim(), String.valueOf(quantity),String.valueOf(price)
             };
                 
             linkedList.add(product);
             
             model.addRow(new Object[]{  
-                id.trim(), name.trim(), category.trim(), quantity,"", "", "", ""
+                id.trim(), name.trim(), category.trim(), quantity, price,"", "", "", ""
             });
 
             lblTotal.setText(
