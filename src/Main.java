@@ -243,16 +243,29 @@ public class Main extends JFrame implements ActionListener {
                 );
                 return;
             }
+            
+             String supplierID = JOptionPane.showInputDialog(
+                this, "Enter Supplier ID:"
+            );
+
+            if (supplierID == null || supplierID.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(
+                    this, "Please enter Supplier ID!"
+                );
+                return;
+            }
+
 
  
             String[] product = {
-                id.trim(), name.trim(), category.trim(), String.valueOf(quantity),String.valueOf(price)
+                id.trim(), name.trim(), category.trim(), String.valueOf(quantity),String.valueOf(price),supplierID.trim()
+
             };
                 
             linkedList.add(product);
             
             model.addRow(new Object[]{  
-                id.trim(), name.trim(), category.trim(), quantity, price,"", "", "", ""
+                id.trim(), name.trim(), category.trim(), quantity, price,supplierID.trim(),"", "", "", ""
             });
 
             lblTotal.setText(
