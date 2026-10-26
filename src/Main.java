@@ -158,41 +158,27 @@ public class Main extends JFrame implements ActionListener {
             }
 
             if (exists) {
-                JOptionPane.showMessageDialog(
-                    this, "Product ID already exists!"
-                );
+                JOptionPane.showMessageDialog(this, "Product ID already exists!");
                 return;
             }
 
-            String name = JOptionPane.showInputDialog(
-                this, "Enter Product Name:"
-            );
+            String name = JOptionPane.showInputDialog(this, "Enter Product Name:");
 
-            if (name == null || name.trim().isEmpty()) {
-                JOptionPane.showMessageDialog(
-                    this, "Please enter Product Name!"
-                );
+            if (name == null || name.trim().isEmpty()) {JOptionPane.showMessageDialog(
+                    this, "Please enter Product Name!");
                 return;
             }
-             String category = JOptionPane.showInputDialog(
-                this, "Enter Category:"
-            );
+             String category = JOptionPane.showInputDialog(this, "Enter Category:");
 
             if (category == null || category.trim().isEmpty()) {
-                JOptionPane.showMessageDialog(
-                    this, "Please enter Category!"
-                );
+                JOptionPane.showMessageDialog(this, "Please enter Category!");
                 return;
             }
             
-            String quantityInput = JOptionPane.showInputDialog(
-                this, "Enter Quantity:"
-            );
+            String quantityInput = JOptionPane.showInputDialog(this, "Enter Quantity:");
 
             if (quantityInput == null || quantityInput.trim().isEmpty()) {
-                JOptionPane.showMessageDialog(
-                    this, "Please enter Quantity!"
-                );
+                JOptionPane.showMessageDialog(this, "Please enter Quantity!" );
                 return;
             }
 
@@ -202,26 +188,18 @@ public class Main extends JFrame implements ActionListener {
                 quantity = Integer.parseInt(quantityInput.trim());
 
                 if (quantity < 0) {
-                    JOptionPane.showMessageDialog(
-                        this, "Quantity cannot be negative!"
-                    );
+                    JOptionPane.showMessageDialog(this, "Quantity cannot be negative!");
                     return;
                 }
 
             } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(
-                    this, "Please enter a valid whole number for Quantity!"
-                );
+                JOptionPane.showMessageDialog(this, "Please enter a valid whole number for Quantity!");
                 return;
             }
-            String priceInput = JOptionPane.showInputDialog(
-                this, "Enter Price:"
-            );
+            String priceInput = JOptionPane.showInputDialog(this, "Enter Price:");
 
             if (priceInput == null || priceInput.trim().isEmpty()) {
-                JOptionPane.showMessageDialog(
-                    this, "Please enter Price!"
-                );
+                JOptionPane.showMessageDialog(this, "Please enter Price!");
                 return;
             }
 
@@ -231,31 +209,21 @@ public class Main extends JFrame implements ActionListener {
                 price = Double.parseDouble(priceInput.trim());
 
                 if (price < 0) {
-                    JOptionPane.showMessageDialog(
-                        this, "Price cannot be negative!"
-                    );
+                    JOptionPane.showMessageDialog(this, "Price cannot be negative!" );
                     return;
                 }
 
             } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(
-                    this, "Please enter a valid number for Price!"
-                );
+                JOptionPane.showMessageDialog(this, "Please enter a valid number for Price!");
                 return;
             }
             
-             String supplierID = JOptionPane.showInputDialog(
-                this, "Enter Supplier ID:"
-            );
+             String supplierID = JOptionPane.showInputDialog(this, "Enter Supplier ID:");
 
             if (supplierID == null || supplierID.trim().isEmpty()) {
-                JOptionPane.showMessageDialog(
-                    this, "Please enter Supplier ID!"
-                );
+                JOptionPane.showMessageDialog(this, "Please enter Supplier ID!");
                 return;
             }
-
-
  
             String[] product = {
                 id.trim(), name.trim(), category.trim(), String.valueOf(quantity),String.valueOf(price),supplierID.trim()
@@ -265,24 +233,22 @@ public class Main extends JFrame implements ActionListener {
             linkedList.add(product);
             
             model.addRow(new Object[]{  
-                id.trim(), name.trim(), category.trim(), quantity, price,supplierID.trim(),"", "", "", ""
+                id.trim(),
+                name.trim(),
+                category.trim(), 
+                quantity, 
+                price,
+                supplierID.trim()
             });
 
-            lblTotal.setText(
-                "Total Products: " + linkedList.size()
-            );
+            lblTotal.setText("Total Products: " + linkedList.size());
 
-            JOptionPane.showMessageDialog(
-                this, "Product added successfully!"
-            );
+            JOptionPane.showMessageDialog(this, "Product added successfully!");
         }
         
         if (e.getSource() == btnUpdate) {
-            JOptionPane.showMessageDialog(
-                this, "Update Product"
-            );
+            JOptionPane.showMessageDialog(this, "Update Product");
         }
-
         if (e.getSource() == btnDelete) {
 
             int selectedRow = tblProducts.getSelectedRow();
@@ -332,6 +298,5 @@ public class Main extends JFrame implements ActionListener {
             dispose();
         }
     }
-
 
     }
