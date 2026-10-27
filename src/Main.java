@@ -117,14 +117,53 @@ public class Main extends JFrame implements ActionListener {
         setLocationRelativeTo(null);
         setVisible(true);
     }
+    
+     private void updateDashboard() {
 
+        lblTotal.setText("Total Products: " + linkedList.size());
+
+        int lowStock = 0;
+
+        for (String[] product : linkedList) {
+
+            int quantity = Integer.parseInt(product[3]);
+
+            if (quantity <= 10) {
+                lowStock++;
+            }
+        }
+
+        lblLowStock.setText("Low Stock: " + lowStock);
+     }
     @Override
     public void actionPerformed(ActionEvent e) {
 
         if (e.getSource() == btnDashboard) {
-            JOptionPane.showMessageDialog(this, "Dashboard");
-        }
+            updateDashboard();
 
+            String lowStockProducts = "";
+
+            for (String[] product : linkedList) {
+
+                int quantity = Integer.parseInt(product[3]);
+
+                if (quantity <= 10) {
+
+                    lowStockProducts +=
+                        "ID: " + product[0]
+                        + "\nProduct Name: " + product[1]
+                        + "\nQuantity: " + product[3]
+                        + "\n----------------------\n";
+                }
+            }
+            if (lowStockProducts.isEmpty()) {
+
+                JOptionPane.showMessageDialog(this, "No low-stock products.");
+            } else {
+                JOptionPane.showMessageDialog(this,lowStockProducts,"Low-Stock Products",JOptionPane.INFORMATION_MESSAGE
+                );
+            }
+        }
         if (e.getSource() == btnProducts) {
             JOptionPane.showMessageDialog(this, "Products");
         }
@@ -250,6 +289,7 @@ public class Main extends JFrame implements ActionListener {
             JOptionPane.showMessageDialog(this, "Update Product");
         }
         if (e.getSource() == btnDelete) {
+            
 
             int selectedRow = tblProducts.getSelectedRow();
 
