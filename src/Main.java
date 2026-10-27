@@ -140,6 +140,7 @@ public class Main extends JFrame implements ActionListener {
 
         if (e.getSource() == btnDashboard) {
             updateDashboard();
+            
 
             String lowStockProducts = "";
 
