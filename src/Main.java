@@ -182,7 +182,20 @@ public class Main extends JFrame implements ActionListener {
                     JOptionPane.showMessageDialog(this, "Please enter Supplier ID!");
                     return;
                 }
-            }
+                
+             boolean exists = false;
+
+                for (String[] supplier : suppliers) {
+
+                    if (supplier[0].equalsIgnoreCase(id.trim())) {
+                        exists = true;
+                        break;
+                    }
+                }
+                if (exists) {
+                    JOptionPane.showMessageDialog(this, "Supplier ID already exists!");
+                    return;
+                }
             
         String name = JOptionPane.showInputDialog(this, "Enter Supplier Name:");
                 if (name == null || name.trim().isEmpty()) {JOptionPane.showMessageDialog(this, "Please enter Supplier Name!");
@@ -384,4 +397,4 @@ public class Main extends JFrame implements ActionListener {
         }
     }
 
-    }
+            }
