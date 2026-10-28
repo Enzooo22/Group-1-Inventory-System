@@ -18,6 +18,7 @@ public class Main extends JFrame implements ActionListener {
 
     private JPanel sidebar, content;
     private LinkedList<String[]> linkedList = new LinkedList<>();
+    private LinkedList<String[]> suppliers = new LinkedList<>();
 
     Main() {
 
