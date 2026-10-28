@@ -176,25 +176,6 @@ public class Main extends JFrame implements ActionListener {
         String[] options = {"Add Supplier", "View Suppliers", "Cancel"};
             int choice = JOptionPane.showOptionDialog(this,"What would you like to do?","Suppliers",JOptionPane.DEFAULT_OPTION,JOptionPane.QUESTION_MESSAGE,null,options,options[0]);
             
-        String name = JOptionPane.showInputDialog(this, "Enter Supplier Name:");
-                if (name == null || name.trim().isEmpty()) {JOptionPane.showMessageDialog(this, "Please enter Supplier Name!");
-                    return;
-                }
-        String contact = JOptionPane.showInputDialog(this, "Enter Supplier Contact Information:");
-        
-        String[] supplier = {
-                    id.trim(), name.trim(), contact.trim()
-                };
-                suppliers.add(supplier);
-                JOptionPane.showMessageDialog(this, "Supplier added successfully!");
-            
-        
-        
-        if (contact == null || contact.trim().isEmpty()) {
-                    JOptionPane.showMessageDialog(this, "Please enter Supplier Contact Information!");
-                    return;
-                }
-
             if (choice == 0) {
                 String id = JOptionPane.showInputDialog(this, "Enter Supplier ID:");
                 if (id == null || id.trim().isEmpty()) {
@@ -202,6 +183,40 @@ public class Main extends JFrame implements ActionListener {
                     return;
                 }
             }
+            
+        String name = JOptionPane.showInputDialog(this, "Enter Supplier Name:");
+                if (name == null || name.trim().isEmpty()) {JOptionPane.showMessageDialog(this, "Please enter Supplier Name!");
+                    return;
+                }
+        String contact = JOptionPane.showInputDialog(this, "Enter Supplier Contact Information:");
+        if (contact == null || contact.trim().isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Please enter Supplier Contact Information!");
+                    return;
+                }
+        String[] supplier = {
+                    id.trim(), name.trim(), contact.trim()
+                };
+                suppliers.add(supplier);
+                JOptionPane.showMessageDialog(this, "Supplier added successfully!");
+                    
+           else if (choice == 1) {
+
+                String supplierList = "";
+
+                for (String[] supplier : suppliers) {
+
+                    supplierList +=
+                        "Supplier ID: " + supplier[0]
+                        + "\nName: " + supplier[1]
+                        + "\nContact: " + supplier[2]
+                        + "\n----------------------\n";
+                }
+                if (supplierList.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "No suppliers added yet.");
+                } else {
+                    JOptionPane.showMessageDialog(this,supplierList,"Supplier List",JOptionPane.INFORMATION_MESSAGE);
+                }
+                   
         if (e.getSource() == btnReports) {
             JOptionPane.showMessageDialog(this, "Reports");
         }
