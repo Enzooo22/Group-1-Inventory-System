@@ -171,7 +171,7 @@ public class Main extends JFrame implements ActionListener {
         }
 
         if (e.getSource() == btnSuppliers) {
-            JOptionPane.showMessageDialog(this, "Suppliers");
+            JOptionPane.showMessageDialog(this, "Supplier Management");
         }
 
         if (e.getSource() == btnReports) {
