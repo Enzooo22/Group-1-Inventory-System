@@ -175,6 +175,14 @@ public class Main extends JFrame implements ActionListener {
         }  
         String[] options = {"Add Supplier", "View Suppliers", "Cancel"};
             int choice = JOptionPane.showOptionDialog(this,"What would you like to do?","Suppliers",JOptionPane.DEFAULT_OPTION,JOptionPane.QUESTION_MESSAGE,null,options,options[0]);
+            
+            if (choice == 0) {
+                String id = JOptionPane.showInputDialog(this, "Enter Supplier ID:");
+                if (id == null || id.trim().isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Please enter Supplier ID!");
+                    return;
+                }
+            }
         if (e.getSource() == btnReports) {
             JOptionPane.showMessageDialog(this, "Reports");
         }
