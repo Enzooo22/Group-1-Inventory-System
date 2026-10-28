@@ -172,18 +172,20 @@ public class Main extends JFrame implements ActionListener {
 
         if (e.getSource() == btnSuppliers) {
             JOptionPane.showMessageDialog(this, "Supplier Management");
-        }  
+        }
         String[] options = {"Add Supplier", "View Suppliers", "Cancel"};
+
             int choice = JOptionPane.showOptionDialog(this,"What would you like to do?","Suppliers",JOptionPane.DEFAULT_OPTION,JOptionPane.QUESTION_MESSAGE,null,options,options[0]);
-            
+
             if (choice == 0) {
+
                 String id = JOptionPane.showInputDialog(this, "Enter Supplier ID:");
+
                 if (id == null || id.trim().isEmpty()) {
                     JOptionPane.showMessageDialog(this, "Please enter Supplier ID!");
                     return;
                 }
-                
-             boolean exists = false;
+                boolean exists = false;
 
                 for (String[] supplier : suppliers) {
 
@@ -196,23 +198,29 @@ public class Main extends JFrame implements ActionListener {
                     JOptionPane.showMessageDialog(this, "Supplier ID already exists!");
                     return;
                 }
-            
-        String name = JOptionPane.showInputDialog(this, "Enter Supplier Name:");
-                if (name == null || name.trim().isEmpty()) {JOptionPane.showMessageDialog(this, "Please enter Supplier Name!");
+
+                String name = JOptionPane.showInputDialog(this, "Enter Supplier Name:");
+
+                if (name == null || name.trim().isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Please enter Supplier Name!");
                     return;
                 }
-        String contact = JOptionPane.showInputDialog(this, "Enter Supplier Contact Information:");
-        if (contact == null || contact.trim().isEmpty()) {
+
+                String contact = JOptionPane.showInputDialog(this, "Enter Supplier Contact Information:");
+
+                if (contact == null || contact.trim().isEmpty()) {
                     JOptionPane.showMessageDialog(this, "Please enter Supplier Contact Information!");
                     return;
                 }
-        String[] supplier = {
+
+                String[] supplier = {
                     id.trim(), name.trim(), contact.trim()
                 };
                 suppliers.add(supplier);
                 JOptionPane.showMessageDialog(this, "Supplier added successfully!");
-                    
-           else if (choice == 1) {
+            }
+
+            else if (choice == 1) {
 
                 String supplierList = "";
 
@@ -224,11 +232,16 @@ public class Main extends JFrame implements ActionListener {
                         + "\nContact: " + supplier[2]
                         + "\n----------------------\n";
                 }
+
                 if (supplierList.isEmpty()) {
+
                     JOptionPane.showMessageDialog(this, "No suppliers added yet.");
+
                 } else {
+
                     JOptionPane.showMessageDialog(this,supplierList,"Supplier List",JOptionPane.INFORMATION_MESSAGE);
                 }
+            }
                    
         if (e.getSource() == btnReports) {
             JOptionPane.showMessageDialog(this, "Reports");
@@ -299,7 +312,6 @@ public class Main extends JFrame implements ActionListener {
                 JOptionPane.showMessageDialog(this, "Please enter Price!");
                 return;
             }
-
             double price;
 
             try {
