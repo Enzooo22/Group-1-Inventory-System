@@ -182,6 +182,19 @@ public class Main extends JFrame implements ActionListener {
                 }
         String contact = JOptionPane.showInputDialog(this, "Enter Supplier Contact Information:");
         
+        String[] supplier = {
+                    id.trim(), name.trim(), contact.trim()
+                };
+                suppliers.add(supplier);
+                JOptionPane.showMessageDialog(this, "Supplier added successfully!");
+            
+        
+        
+        if (contact == null || contact.trim().isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Please enter Supplier Contact Information!");
+                    return;
+                }
+
             if (choice == 0) {
                 String id = JOptionPane.showInputDialog(this, "Enter Supplier ID:");
                 if (id == null || id.trim().isEmpty()) {
