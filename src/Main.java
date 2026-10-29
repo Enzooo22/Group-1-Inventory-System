@@ -172,11 +172,13 @@ public class Main extends JFrame implements ActionListener {
 
         if (e.getSource() == btnSuppliers) {
             JOptionPane.showMessageDialog(this, "Supplier Management");
-        }
-        String[] options = {"Add Supplier", "View Suppliers", "Cancel"};
+        
+        String[] options = {
+            "Add Supplier", "View Suppliers", "Cancel"
+        };
 
             int choice = JOptionPane.showOptionDialog(this,"What would you like to do?","Suppliers",JOptionPane.DEFAULT_OPTION,JOptionPane.QUESTION_MESSAGE,null,options,options[0]);
-
+    
             if (choice == 0) {
 
                 String id = JOptionPane.showInputDialog(this, "Enter Supplier ID:");
@@ -242,6 +244,7 @@ public class Main extends JFrame implements ActionListener {
                     JOptionPane.showMessageDialog(this,supplierList,"Supplier List",JOptionPane.INFORMATION_MESSAGE);
                 }
             }
+        }
                    
         if (e.getSource() == btnReports) {
             JOptionPane.showMessageDialog(this, "Reports");
@@ -403,10 +406,9 @@ public class Main extends JFrame implements ActionListener {
                 );
             }
         }
-
         if (e.getSource() == btnLogout) {
             dispose();
         }
     }
 
-            }
+    }
