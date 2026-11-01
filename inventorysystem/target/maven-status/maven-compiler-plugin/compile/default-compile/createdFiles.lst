@@ -1,4 +1,5 @@
 com\mycompany\inventorysystem\Login.class
 com\mycompany\inventorysystem\Main.class
 com\mycompany\inventorysystem\DatabaseConnection.class
+com\mycompany\inventorysystem\SupplierManagement.class
 com\mycompany\inventorysystem\Inventorysystem.class
