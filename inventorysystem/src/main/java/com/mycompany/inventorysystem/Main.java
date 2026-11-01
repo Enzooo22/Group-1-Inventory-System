@@ -137,8 +137,26 @@ public class Main extends JFrame implements ActionListener {
             "Quantity", "Price", "Supplier ID"
         };
 
-        model = new DefaultTableModel(columns, 0);
+        model = new DefaultTableModel(columns, 0) {
+            @Override
+            public Class<?> getColumnClass(int column) {
+                return column == 4 ? Double.class : Object.class;
+            }
+        };
         tblProducts = new JTable(model);
+        // Format only the display; editing, sorting and database writes use numbers.
+        tblProducts.getColumnModel().getColumn(4).setCellRenderer(
+            new javax.swing.table.DefaultTableCellRenderer() {
+                private final java.text.DecimalFormat pesoFormat = new java.text.DecimalFormat(
+                    "\u20B1#,##0.00", java.text.DecimalFormatSymbols.getInstance(Locale.US));
+
+                @Override
+                protected void setValue(Object value) {
+                    setHorizontalAlignment(SwingConstants.RIGHT);
+                    setText(value instanceof Number ? pesoFormat.format(value)
+                        : value == null ? "" : value.toString());
+                }
+            });
 
         JScrollPane scrollPane = new JScrollPane(tblProducts);
         scrollPane.setBounds(20, 210, 730, 300);
@@ -182,171 +200,32 @@ public class Main extends JFrame implements ActionListener {
             JOptionPane.showMessageDialog(this, "Reports");
         }
         if (e.getSource() == btnAdd) {
+            AddProductDialog dialog = new AddProductDialog(this,
+                (id, name, category, quantity, price, supplierID) -> {
+                    for (String[] product : linkedList) {
+                        if (Long.parseLong(product[0]) == Long.parseLong(id)) {
+                            JOptionPane.showMessageDialog(this, "Product ID already exists!");
+                            return false;
+                        }
+                    }
 
-            String id = JOptionPane.showInputDialog(
-                this, "Enter Product ID:"
-            );
+                    if (!saveProduct(id, name, category, quantity, price, supplierID)) {
+                        return false;
+                    }
 
-            if (id == null || id.trim().isEmpty()) {
-                JOptionPane.showMessageDialog(
-                    this, "Please enter Product ID!"
-                );
-                return;
-            } 
-            boolean exists = false;
-
-            for (String[] product : linkedList) {
-                if (product[0].equalsIgnoreCase(id.trim())) {
-                    exists = true;
-                    break;
-                }
-            }
-
-            if (exists) {
-                JOptionPane.showMessageDialog(
-                    this, "Product ID already exists!"
-                );
-                return;
-            }
-
-            String name = JOptionPane.showInputDialog(
-                this, "Enter Product Name:"
-            );
-
-            if (name == null || name.trim().isEmpty()) {
-                JOptionPane.showMessageDialog(
-                    this, "Please enter Product Name!"
-                );
-                return;
-            }
-             String category = JOptionPane.showInputDialog(
-                this, "Enter Category:"
-            );
-
-            if (category == null || category.trim().isEmpty()) {
-                JOptionPane.showMessageDialog(
-                    this, "Please enter Category!"
-                );
-                return;
-            }
-            
-            String quantityInput = JOptionPane.showInputDialog(
-                this, "Enter Quantity:"
-            );
-
-            if (quantityInput == null || quantityInput.trim().isEmpty()) {
-                JOptionPane.showMessageDialog(
-                    this, "Please enter Quantity!"
-                );
-                return;
-            }
-
-            int quantity;
-
-            try {
-                quantity = Integer.parseInt(quantityInput.trim());
-
-                if (quantity < 0) {
-                    JOptionPane.showMessageDialog(
-                        this, "Quantity cannot be negative!"
-                    );
-                    return;
-                }
-
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(
-                    this, "Please enter a valid whole number for Quantity!"
-                );
-                return;
-            }
-            String priceInput = JOptionPane.showInputDialog(
-                this, "Enter Price:"
-            );
-
-            if (priceInput == null || priceInput.trim().isEmpty()) {
-                JOptionPane.showMessageDialog(
-                    this, "Please enter Price!"
-                );
-                return;
-            }
-
-            double price;
-
-            try {
-                price = Double.parseDouble(priceInput.trim());
-
-                if (price < 0) {
-                    JOptionPane.showMessageDialog(
-                        this, "Price cannot be negative!"
-                    );
-                    return;
-                }
-
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(
-                    this, "Please enter a valid number for Price!"
-                    );
-                    return;
-                }
-
-                 String supplierID = JOptionPane.showInputDialog(
-                    this, "Enter Supplier ID:"
-                );
-
-                if (supplierID == null || supplierID.trim().isEmpty()) {
-                    JOptionPane.showMessageDialog(
-                        this, "Please enter Supplier ID!"
-                    );
-                    return;
-                }
-
-                String[] product = {
-                    id.trim(), name.trim(), category.trim(), String.valueOf(quantity),String.valueOf(price),supplierID.trim()
-
-                };
-
-                
-              boolean saved = saveProduct(
-                id.trim(),
-                name.trim(),
-                category.trim(),
-                quantity,
-                price,
-                supplierID.trim()
-                );
-
-              if (saved) {
-              linkedList.add(new String []{
-                id.trim(),
-                name.trim(),
-                category.trim(),
-                String.valueOf(quantity),
-                String.valueOf(price),
-                supplierID.trim()
+                    linkedList.add(new String[]{
+                        id, name, category, String.valueOf(quantity),
+                        String.valueOf(price), supplierID
+                    });
+                    model.addRow(new Object[]{
+                        id, name, category, quantity, price, supplierID
+                    });
+                    lblTotal.setText("Total Products: " + linkedList.size());
+                    return true;
                 });
-
-
-              model.addRow(new Object[]{
-                 id.trim(),
-                 name.trim(),
-                 category.trim(),
-                 quantity,
-                 price,
-                 supplierID.trim()
-                 });
-
-              lblTotal.setText(
-                "Total Products: " + linkedList.size()
-                 );
-
-                JOptionPane.showMessageDialog(
-                this, "Product added successfully!"
-                 );
-                }
-
+            dialog.setVisible(true);
         }
-        
-        
+
         if (e.getSource() == btnUpdate) {
 
     int selectedRow = tblProducts.getSelectedRow();
@@ -705,6 +584,17 @@ public class Main extends JFrame implements ActionListener {
                  DatabaseConnection.getConnection();
              java.sql.PreparedStatement ps =
                  con.prepareStatement(sql)) {
+
+            try (java.sql.PreparedStatement check = con.prepareStatement(
+                    "SELECT product_id FROM products WHERE product_id = ?")) {
+                check.setLong(1, Long.parseLong(id));
+                try (java.sql.ResultSet rs = check.executeQuery()) {
+                    if (rs.next()) {
+                        JOptionPane.showMessageDialog(this, "Product ID already exists!");
+                        return false;
+                    }
+                }
+            }
 
             ps.setLong(1, Long.parseLong(id));
             ps.setString(2, name);
