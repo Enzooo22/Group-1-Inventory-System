@@ -14,9 +14,10 @@ public class SupplierManagement extends JFrame
 
     private JTable tblSuppliers;
     private DefaultTableModel model;
+    private javax.swing.table.TableRowSorter<DefaultTableModel> sorter;
 
     private JButton btnAdd, btnUpdate;
-    private JButton btnDelete, btnSearch, btnBack;
+    private JButton btnDelete, btnBack;
 
     SupplierManagement() {
 
@@ -33,10 +34,10 @@ public class SupplierManagement extends JFrame
         txtSearch = new JTextField();
         txtSearch.setBounds(30, 80, 250, 30);
         add(txtSearch);
-
-        btnSearch = new JButton("Search");
-        btnSearch.setBounds(290, 80, 100, 30);
-        add(btnSearch);
+        txtSearch.setToolTipText("Search by Supplier ID or Supplier Name");
+        JLabel searchLabel = new JLabel("Search by Supplier ID or Name");
+        searchLabel.setBounds(300, 80, 300, 30);
+        add(searchLabel);
 
         btnAdd = new JButton("Add Supplier");
         btnAdd.setBounds(30, 130, 130, 30);
@@ -58,13 +59,28 @@ public class SupplierManagement extends JFrame
             "Supplier ID",
             "Supplier Name",
             "Contact Person",
-            "Phone",
-            "Email",
+            "Contact Number",
+            "Email Address",
             "Address"
         };
 
-        model = new DefaultTableModel(columns, 0);
+        model = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) { return false; }
+            @Override
+            public Class<?> getColumnClass(int column) {
+                return column == 0 ? Long.class : String.class;
+            }
+        };
         tblSuppliers = new JTable(model);
+        sorter = new javax.swing.table.TableRowSorter<>(model);
+        sorter.setSortsOnUpdates(true);
+        tblSuppliers.setRowSorter(sorter);
+        txtSearch.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { filterSuppliers(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { filterSuppliers(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { filterSuppliers(); }
+        });
 
         JScrollPane scrollPane =
         new JScrollPane(tblSuppliers);
@@ -75,7 +91,7 @@ public class SupplierManagement extends JFrame
         btnAdd.addActionListener(this);
         btnUpdate.addActionListener(this);
         btnDelete.addActionListener(this);
-        btnSearch.addActionListener(this);
+
         btnBack.addActionListener(this);
 
         loadSuppliers();
@@ -87,160 +103,31 @@ public class SupplierManagement extends JFrame
         @Override
         public void actionPerformed(ActionEvent e) {
 
-            if (e.getSource() == btnAdd) {
-
-                String id = JOptionPane.showInputDialog(
-                    this, "Enter Supplier ID:"
-                );
-
-                if (id == null || id.trim().isEmpty()) {
-                    return;
+            if (e.getSource() == btnAdd || e.getSource() == btnUpdate) {
+                boolean updating = e.getSource() == btnUpdate;
+                String[] supplier = null;
+                if (updating) {
+                    int selected = tblSuppliers.getSelectedRow();
+                    if (selected == -1) {
+                        JOptionPane.showMessageDialog(this, "Please select a supplier to update.");
+                        return;
+                    }
+                    int row = tblSuppliers.convertRowIndexToModel(selected);
+                    supplier = new String[6];
+                    for (int column = 0; column < supplier.length; column++) {
+                        Object value = model.getValueAt(row, column);
+                        supplier[column] = value == null ? "" : value.toString();
+                    }
                 }
-
-                String name = JOptionPane.showInputDialog(
-                    this, "Enter Supplier Name:"
-                );
-
-                if (name == null || name.trim().isEmpty()) {
-                    return;
-                }
-
-                String person = JOptionPane.showInputDialog(
-                    this, "Enter Contact Person:"
-                );
-
-                if (person == null || person.trim().isEmpty()) {
-                    return;
-                }
-
-                String phone = JOptionPane.showInputDialog(
-                    this, "Enter Phone Number:"
-                );
-
-                if (phone == null || phone.trim().isEmpty()) {
-                    return;
-                }
-
-                String email = JOptionPane.showInputDialog(
-                    this, "Enter Email:"
-                );
-
-                if (email == null || email.trim().isEmpty()) {
-                    return;
-                }
-
-                String address = JOptionPane.showInputDialog(
-                    this, "Enter Address:"
-                );
-
-                if (address == null || address.trim().isEmpty()) {
-                    return;
-                }
-
-                try {
-                    Long.parseLong(id.trim());
-                } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(
-                        this, "Supplier ID must be a whole number."
-                    );
-                    return;
-                }
-
-                boolean saved = saveSupplier(
-                    id.trim(),
-                    name.trim(),
-                    person.trim(),
-                    phone.trim(),
-                    email.trim(),
-                    address.trim()
-                );
-
-                if (saved) {
-
-                    loadSuppliers();
-
-                    JOptionPane.showMessageDialog(
-                        this, "Supplier added successfully!"
-                    );
-                }
+                SupplierDialog dialog = new SupplierDialog(this, supplier, values -> {
+                    boolean saved = updating
+                        ? updateSupplier(values[0], values[1], values[2], values[3], values[4], values[5])
+                        : saveSupplier(values[0], values[1], values[2], values[3], values[4], values[5]);
+                    if (saved) loadSuppliers();
+                    return saved;
+                });
+                dialog.setVisible(true);
             }
-
-            if (e.getSource() == btnUpdate) {
-
-                int selectedRow =
-                    tblSuppliers.getSelectedRow();
-
-                if (selectedRow == -1) {
-                    JOptionPane.showMessageDialog(
-                        this, "Please select a supplier to update."
-                    );
-                    return;
-                }
-
-                String id = model.getValueAt(
-                    selectedRow, 0
-                ).toString();
-
-                String name = JOptionPane.showInputDialog(
-                    this, "Enter Supplier Name:",
-                    model.getValueAt(selectedRow, 1)
-                );
-
-                if (name == null || name.trim().isEmpty()) {
-                    return;
-                }
-
-                String person = JOptionPane.showInputDialog(
-                    this, "Enter Contact Person:",
-                    model.getValueAt(selectedRow, 2)
-                );
-
-                if (person == null || person.trim().isEmpty()) {
-                    return;
-                }
-
-                String phone = JOptionPane.showInputDialog(
-                    this, "Enter Phone Number:",
-                    model.getValueAt(selectedRow, 3)
-                );
-
-                if (phone == null || phone.trim().isEmpty()) {
-                    return;
-                }
-
-                String email = JOptionPane.showInputDialog(
-                    this, "Enter Email:",
-                    model.getValueAt(selectedRow, 4)
-                );
-
-                if (email == null || email.trim().isEmpty()) {
-                    return;
-                }
-
-                String address = JOptionPane.showInputDialog(
-                    this, "Enter Address:",
-                    model.getValueAt(selectedRow, 5)
-                );
-
-                if (address == null || address.trim().isEmpty()) {
-                    return;
-                }
-
-                boolean updated = updateSupplier(
-                    id, name.trim(), person.trim(),
-                    phone.trim(), email.trim(), address.trim()
-                );
-
-                if (updated) {
-
-                    loadSuppliers();
-
-                    JOptionPane.showMessageDialog(
-                        this, "Supplier updated successfully!"
-                    );
-                }
-            }
-
             if (e.getSource() == btnDelete) {
 
                 int selectedRow =
@@ -263,7 +150,7 @@ public class SupplierManagement extends JFrame
                 if (confirm == JOptionPane.YES_OPTION) {
 
                     String id = model.getValueAt(
-                        selectedRow, 0
+                        tblSuppliers.convertRowIndexToModel(selectedRow), 0
                     ).toString();
 
                     boolean deleted = deleteSupplier(id);
@@ -279,53 +166,29 @@ public class SupplierManagement extends JFrame
                 }
             }
 
-            if (e.getSource() == btnSearch) {
-
-                String search =
-                    txtSearch.getText().trim();
-
-                boolean found = false;
-
-                for (int i = 0;
-                     i < model.getRowCount(); i++) {
-
-                    String id = model.getValueAt(i, 0).toString();
-
-                    String name = model.getValueAt(i, 1).toString();
-
-                    String person = model.getValueAt(i, 2).toString();
-
-                    if (id.equalsIgnoreCase(search) ||
-                        name.toLowerCase().contains(
-                            search.toLowerCase()) ||
-                        person.toLowerCase().contains(
-                            search.toLowerCase())) {
-
-                        tblSuppliers.setRowSelectionInterval(i, i);
-                        found = true;
-                        break;
-                    }
-                }
-
-                if (found) {
-                    JOptionPane.showMessageDialog(
-                        this, "Supplier found!"
-                    );
-                } else {
-                    JOptionPane.showMessageDialog(
-                        this, "Supplier not found."
-                    );
-                }
-            }
-
             if (e.getSource() == btnBack) {
                 dispose();
             }
         }
 
+        private void filterSuppliers() {
+            String search = txtSearch.getText().trim().toLowerCase(java.util.Locale.ROOT);
+            if (search.isEmpty()) {
+                sorter.setRowFilter(null);
+                return;
+            }
+            sorter.setRowFilter(new RowFilter<DefaultTableModel, Integer>() {
+                @Override
+                public boolean include(Entry<? extends DefaultTableModel, ? extends Integer> entry) {
+                    return entry.getStringValue(0).equals(search)
+                        || entry.getStringValue(1).toLowerCase(java.util.Locale.ROOT).contains(search);
+                }
+            });
+        }
+
         private void loadSuppliers() {
 
-            model.setRowCount(0);
+            java.util.List<Object[]> rows = new java.util.ArrayList<>();
 
             String sql =
                 "SELECT supplier_id, supplier_name, " +
@@ -340,7 +203,7 @@ public class SupplierManagement extends JFrame
 
                 while (rs.next()) {
 
-                    model.addRow(new Object[] {
+                    rows.add(new Object[] {
                         rs.getLong("supplier_id"),
                         rs.getString("supplier_name"),
                         rs.getString("contact_person"),
@@ -349,6 +212,8 @@ public class SupplierManagement extends JFrame
                         rs.getString("address")
                     });
                 }
+                model.setRowCount(0);
+                for (Object[] row : rows) model.addRow(row);
 
             } catch (SQLException ex) {
 
@@ -378,6 +243,16 @@ public class SupplierManagement extends JFrame
                  PreparedStatement ps =
                      con.prepareStatement(sql)) {
 
+                try (PreparedStatement check = con.prepareStatement(
+                        "SELECT supplier_id FROM suppliers WHERE supplier_id = ?")) {
+                    check.setLong(1, Long.parseLong(id));
+                    try (ResultSet rs = check.executeQuery()) {
+                        if (rs.next()) {
+                            JOptionPane.showMessageDialog(this, "Supplier ID already exists!");
+                            return false;
+                        }
+                    }
+                }
                 ps.setLong(1, Long.parseLong(id));
                 ps.setString(2, name);
                 ps.setString(3, person);
@@ -427,7 +302,9 @@ public class SupplierManagement extends JFrame
                 ps.setString(5, address);
                 ps.setLong(6, Long.parseLong(id));
 
-                return ps.executeUpdate() > 0;
+                if (ps.executeUpdate() > 0) return true;
+                JOptionPane.showMessageDialog(this, "Supplier was not updated. It may no longer exist.");
+                return false;
 
             } catch (SQLException |
                      NumberFormatException ex) {
@@ -444,16 +321,31 @@ public class SupplierManagement extends JFrame
         private boolean deleteSupplier(String id) {
 
             String sql =
-                "DELETE FROM suppliers WHERE supplier_id = ?";
+                "DELETE FROM suppliers WHERE supplier_id = ? " +
+                "AND NOT EXISTS (SELECT 1 FROM products WHERE products.supplier_id = suppliers.supplier_id)";
 
             try (Connection con =
                      DatabaseConnection.getConnection();
                  PreparedStatement ps =
                      con.prepareStatement(sql)) {
 
+                try (PreparedStatement check = con.prepareStatement(
+                        "SELECT 1 FROM products WHERE supplier_id = ? LIMIT 1")) {
+                    check.setLong(1, Long.parseLong(id));
+                    try (ResultSet rs = check.executeQuery()) {
+                        if (rs.next()) {
+                            JOptionPane.showMessageDialog(this,
+                                "Cannot delete this supplier because existing products still use it.");
+                            return false;
+                        }
+                    }
+                }
+                // Recheck references in the DELETE itself as well as above.
                 ps.setLong(1, Long.parseLong(id));
-
-                return ps.executeUpdate() > 0;
+                if (ps.executeUpdate() > 0) return true;
+                JOptionPane.showMessageDialog(this,
+                    "Supplier was not deleted. It may be in use or no longer exist.");
+                return false;
 
             } catch (SQLException |
                      NumberFormatException ex) {
