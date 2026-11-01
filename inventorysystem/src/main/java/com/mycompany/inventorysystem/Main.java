@@ -12,13 +12,13 @@ import java.util.LinkedList;
 
 public class Main extends JFrame implements ActionListener {
 
-    private JLabel lblTitle, lblTotal, lblLowStock;
+    private JLabel lblTitle, lblTotal;
     private JTextField txtSearch;
     private JTable tblProducts;
     private DefaultTableModel model;
     private javax.swing.table.TableRowSorter<DefaultTableModel> productSorter;
 
-    private JButton btnDashboard, btnProducts, btnSuppliers;
+    private JButton btnSuppliers;
     private JButton btnReports, btnAdd, btnUpdate;
     private JButton btnDelete, btnLogout;
 
@@ -76,24 +76,16 @@ public class Main extends JFrame implements ActionListener {
         sidebar.setBounds(10, 60, 180, 540);
         add(sidebar);
 
-        btnDashboard = new JButton("Dashboard");
-        btnDashboard.setBounds(10, 20, 160, 35);
-        sidebar.add(btnDashboard);
-
-        btnProducts = new JButton("Products");
-        btnProducts.setBounds(10, 65, 160, 35);
-        sidebar.add(btnProducts);
-
         btnSuppliers = new JButton("Suppliers");
-        btnSuppliers.setBounds(10, 110, 160, 35);
+        btnSuppliers.setBounds(10, 20, 160, 35);
         sidebar.add(btnSuppliers);
 
         btnReports = new JButton("Reports");
-        btnReports.setBounds(10, 155, 160, 35);
+        btnReports.setBounds(10, 65, 160, 35);
         sidebar.add(btnReports);
 
         btnLogout = new JButton("Logout");
-        btnLogout.setBounds(10, 470, 160, 35);
+        btnLogout.setBounds(10, 485, 160, 35);
         sidebar.add(btnLogout);
 
         content = new JPanel();
@@ -101,36 +93,32 @@ public class Main extends JFrame implements ActionListener {
         content.setBounds(200, 60, 770, 540);
         add(content);
 
-        JLabel lblDashboard = new JLabel("Dashboard");
-        lblDashboard.setBounds(20, 10, 200, 30);
-        content.add(lblDashboard);
+        JLabel lblProductManagement = new JLabel("Product Management");
+        lblProductManagement.setBounds(20, 10, 250, 30);
+        content.add(lblProductManagement);
 
         lblTotal = new JLabel("Total Products: 0");
-        lblTotal.setBounds(20, 50, 200, 40);
+        lblTotal.setBounds(20, 45, 200, 30);
         content.add(lblTotal);
 
-        lblLowStock = new JLabel("Low Stock: 0");
-        lblLowStock.setBounds(250, 50, 200, 40);
-        content.add(lblLowStock);
-
         txtSearch = new JTextField();
-        txtSearch.setBounds(20, 110, 250, 30);
+        txtSearch.setBounds(20, 90, 300, 30);
         txtSearch.setToolTipText("Search by Product ID or Product Name");
         content.add(txtSearch);
         JLabel searchLabel = new JLabel("Search by ID or name");
-        searchLabel.setBounds(280, 110, 200, 30);
+        searchLabel.setBounds(335, 90, 200, 30);
         content.add(searchLabel);
 
         btnAdd = new JButton("Add Product");
-        btnAdd.setBounds(20, 160, 120, 30);
+        btnAdd.setBounds(20, 135, 120, 30);
         content.add(btnAdd);
 
         btnUpdate = new JButton("Update");
-        btnUpdate.setBounds(150, 160, 100, 30);
+        btnUpdate.setBounds(150, 135, 100, 30);
         content.add(btnUpdate);
 
         btnDelete = new JButton("Delete");
-        btnDelete.setBounds(260, 160, 100, 30);
+        btnDelete.setBounds(260, 135, 100, 30);
         content.add(btnDelete);
 
         String[] columns = {
@@ -192,11 +180,9 @@ public class Main extends JFrame implements ActionListener {
             });
 
         JScrollPane scrollPane = new JScrollPane(tblProducts);
-        scrollPane.setBounds(20, 210, 730, 300);
+        scrollPane.setBounds(20, 185, 730, 335);
         content.add(scrollPane);
 
-        btnDashboard.addActionListener(this);
-        btnProducts.addActionListener(this);
         btnSuppliers.addActionListener(this);
         btnReports.addActionListener(this);
         btnAdd.addActionListener(this);
@@ -215,14 +201,6 @@ public class Main extends JFrame implements ActionListener {
      */
     @Override
     public void actionPerformed(ActionEvent e) {
-
-        if (e.getSource() == btnDashboard) {
-            JOptionPane.showMessageDialog(this, "Dashboard");
-        }
-
-        if (e.getSource() == btnProducts) {
-            JOptionPane.showMessageDialog(this, "Products");
-        }
 
         if (e.getSource() == btnSuppliers) {
         new SupplierManagement();
