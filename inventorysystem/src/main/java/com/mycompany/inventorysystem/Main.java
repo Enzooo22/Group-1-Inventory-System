@@ -312,7 +312,6 @@ public class Main extends JFrame implements ActionListener {
                 supplierID.trim()
                 });
 
-              linkedList.add(product);
 
               model.addRow(new Object[]{
                  id.trim(),
