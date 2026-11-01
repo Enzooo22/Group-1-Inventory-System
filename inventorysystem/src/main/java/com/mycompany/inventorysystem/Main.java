@@ -5,9 +5,6 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import java.util.*;
-import java.awt.*;
-import java.sql.*;
 import java.util.LinkedList;
 
 public class Main extends JFrame implements ActionListener {
