@@ -207,7 +207,7 @@ public class Main extends JFrame implements ActionListener {
 }
         
         if (e.getSource() == btnReports) {
-            JOptionPane.showMessageDialog(this, "Reports");
+            new Reports();
         }
         if (e.getSource() == btnAdd) {
             AddProductDialog dialog = new AddProductDialog(this,
