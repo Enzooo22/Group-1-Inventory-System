@@ -7,11 +7,14 @@ com\mycompany\inventorysystem\AddProductDialog.class
 com\mycompany\inventorysystem\Inventorysystem.class
 com\mycompany\inventorysystem\Main$2.class
 com\mycompany\inventorysystem\SupplierDialog$SupplierSaver.class
+com\mycompany\inventorysystem\Reports.class
+com\mycompany\inventorysystem\Reports$1.class
 com\mycompany\inventorysystem\Main$4.class
 com\mycompany\inventorysystem\AddProductDialog$ProductSaver.class
 com\mycompany\inventorysystem\SupplierManagement.class
 com\mycompany\inventorysystem\SupplierManagement$3.class
 com\mycompany\inventorysystem\Login.class
 com\mycompany\inventorysystem\SupplierManagement$2.class
+com\mycompany\inventorysystem\Reports$2.class
 com\mycompany\inventorysystem\Main$3.class
 com\mycompany\inventorysystem\SupplierDialog.class
