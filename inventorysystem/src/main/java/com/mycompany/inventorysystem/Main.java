@@ -549,7 +549,16 @@ public class Main extends JFrame implements ActionListener {
         }
 
         if (e.getSource() == btnLogout) {
-            dispose();
+            int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Are you sure you want to log out?",
+                "Confirm Logout",
+                JOptionPane.YES_NO_OPTION
+            );
+
+            if (confirm == JOptionPane.YES_OPTION) {
+                System.exit(0);
+            }
         }
     }
 
