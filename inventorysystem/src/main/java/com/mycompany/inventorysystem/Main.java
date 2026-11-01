@@ -7,6 +7,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.util.*;
 import java.awt.*;
+import java.sql.*;
+import java.util.LinkedList;
 
 public class Main extends JFrame implements ActionListener {
 
@@ -20,6 +22,17 @@ public class Main extends JFrame implements ActionListener {
     private JButton btnDelete, btnSearch, btnLogout;
 
     private JPanel sidebar, content;
+    
+    private JTable tblSuppliers;
+    private DefaultTableModel supplierModel;
+
+    private JTextField txtSupplierSearch;
+
+    private JButton btnAddSupplier;
+    private JButton btnUpdateSupplier;
+    private JButton btnDeleteSupplier;
+    private JButton btnSearchSupplier;
+    
     private LinkedList<String[]> linkedList = new LinkedList<>();
 
     Main() {
@@ -162,9 +175,9 @@ public class Main extends JFrame implements ActionListener {
         }
 
         if (e.getSource() == btnSuppliers) {
-            JOptionPane.showMessageDialog(this, "Suppliers");
-        }
-
+        new SupplierManagement();
+}
+        
         if (e.getSource() == btnReports) {
             JOptionPane.showMessageDialog(this, "Reports");
         }
@@ -705,4 +718,5 @@ public class Main extends JFrame implements ActionListener {
             return false;
         }
     } 
-} 
+ }    
+ 
