@@ -16,10 +16,11 @@ public class Main extends JFrame implements ActionListener {
     private JTextField txtSearch;
     private JTable tblProducts;
     private DefaultTableModel model;
+    private javax.swing.table.TableRowSorter<DefaultTableModel> productSorter;
 
     private JButton btnDashboard, btnProducts, btnSuppliers;
     private JButton btnReports, btnAdd, btnUpdate;
-    private JButton btnDelete, btnSearch, btnLogout;
+    private JButton btnDelete, btnLogout;
 
     private JPanel sidebar, content;
     
@@ -114,11 +115,11 @@ public class Main extends JFrame implements ActionListener {
 
         txtSearch = new JTextField();
         txtSearch.setBounds(20, 110, 250, 30);
+        txtSearch.setToolTipText("Search by Product ID or Product Name");
         content.add(txtSearch);
-
-        btnSearch = new JButton("Search");
-        btnSearch.setBounds(280, 110, 100, 30);
-        content.add(btnSearch);
+        JLabel searchLabel = new JLabel("Search by ID or name");
+        searchLabel.setBounds(280, 110, 200, 30);
+        content.add(searchLabel);
 
         btnAdd = new JButton("Add Product");
         btnAdd.setBounds(20, 160, 120, 30);
@@ -140,10 +141,42 @@ public class Main extends JFrame implements ActionListener {
         model = new DefaultTableModel(columns, 0) {
             @Override
             public Class<?> getColumnClass(int column) {
-                return column == 4 ? Double.class : Object.class;
+                if (column == 4) return Double.class;
+                if (column == 3) return Integer.class;
+                return String.class;
+            }
+
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
             }
         };
         tblProducts = new JTable(model);
+        productSorter = new javax.swing.table.TableRowSorter<>(model);
+        productSorter.setSortsOnUpdates(true);
+        // IDs remain strings for existing database methods, but sort numerically.
+        Comparator<String> idComparator = (left, right) -> {
+            if (left.isEmpty() || right.isEmpty()) return left.compareTo(right);
+            return Long.compare(Long.parseLong(left), Long.parseLong(right));
+        };
+        productSorter.setComparator(0, idComparator);
+        productSorter.setComparator(5, idComparator);
+        tblProducts.setRowSorter(productSorter);
+        javax.swing.table.DefaultTableCellRenderer textRenderer =
+            new javax.swing.table.DefaultTableCellRenderer();
+        textRenderer.setHorizontalAlignment(SwingConstants.LEFT);
+        javax.swing.table.DefaultTableCellRenderer numberRenderer =
+            new javax.swing.table.DefaultTableCellRenderer();
+        numberRenderer.setHorizontalAlignment(SwingConstants.RIGHT);
+        for (int column = 0; column < model.getColumnCount(); column++) {
+            tblProducts.getColumnModel().getColumn(column).setCellRenderer(
+                column == 1 || column == 2 ? textRenderer : numberRenderer);
+        }
+        txtSearch.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { filterProducts(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { filterProducts(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { filterProducts(); }
+        });
         // Format only the display; editing, sorting and database writes use numbers.
         tblProducts.getColumnModel().getColumn(4).setCellRenderer(
             new javax.swing.table.DefaultTableCellRenderer() {
@@ -169,7 +202,6 @@ public class Main extends JFrame implements ActionListener {
         btnAdd.addActionListener(this);
         btnUpdate.addActionListener(this);
         btnDelete.addActionListener(this);
-        btnSearch.addActionListener(this);
         btnLogout.addActionListener(this);
 
         loadProducts();
@@ -227,140 +259,40 @@ public class Main extends JFrame implements ActionListener {
         }
 
         if (e.getSource() == btnUpdate) {
-
-    int selectedRow = tblProducts.getSelectedRow();
-
-    if (selectedRow == -1) {
-        JOptionPane.showMessageDialog(
-            this,
-            "Please select a product to update."
-        );
-        return;
-    }
-
-    String id = model.getValueAt(
-        selectedRow, 0
-    ).toString();
-
-    String name = JOptionPane.showInputDialog(
-        this, "Enter Product Name:",
-        model.getValueAt(selectedRow, 1)
-    );
-
-    if (name == null || name.trim().isEmpty()) {
-        return;
-    }
-
-    String category = JOptionPane.showInputDialog(
-        this, "Enter Category:",
-        model.getValueAt(selectedRow, 2)
-    );
-
-    if (category == null || category.trim().isEmpty()) {
-        return;
-    }
-
-    String quantityInput = JOptionPane.showInputDialog(
-        this, "Enter Quantity:",
-        model.getValueAt(selectedRow, 3)
-    );
-
-    if (quantityInput == null ||
-        quantityInput.trim().isEmpty()) {
-        return;
-    }
-
-    int quantity;
-
-    try {
-        quantity = Integer.parseInt(quantityInput.trim());
-
-        if (quantity < 0) {
-            JOptionPane.showMessageDialog(
-                this, "Quantity cannot be negative!"
-            );
-            return;
+            int viewRow = tblProducts.getSelectedRow();
+            if (viewRow == -1) {
+                JOptionPane.showMessageDialog(this, "Please select a product to update.");
+                return;
+            }
+            int row = tblProducts.convertRowIndexToModel(viewRow);
+            String[] product = new String[6];
+            for (int column = 0; column < product.length; column++) {
+                Object value = model.getValueAt(row, column);
+                product[column] = value == null ? "" : value.toString();
+            }
+            UpdateProductDialog dialog = new UpdateProductDialog(this,
+                (id, name, category, quantity, price, supplierID) -> {
+                    if (!updateProduct(id, name, category, quantity, price, supplierID)) {
+                        JOptionPane.showMessageDialog(this,
+                            "Product was not updated. Check the ID and details.");
+                        return false;
+                    }
+                    String[] updated = {id, name, category, String.valueOf(quantity),
+                        String.valueOf(price), supplierID};
+                    for (int i = 0; i < linkedList.size(); i++) {
+                        if (linkedList.get(i)[0].equals(id)) {
+                            linkedList.set(i, updated);
+                            break;
+                        }
+                    }
+                    Object[] values = {id, name, category, quantity, price, supplierID};
+                    for (int column = 0; column < values.length; column++) {
+                        model.setValueAt(values[column], row, column);
+                    }
+                    return true;
+                }, product);
+            dialog.setVisible(true);
         }
-
-    } catch (NumberFormatException ex) {
-        JOptionPane.showMessageDialog(
-            this, "Enter a valid whole number for Quantity!"
-        );
-        return;
-    }
-
-    String priceInput = JOptionPane.showInputDialog(
-        this, "Enter Price:",
-        model.getValueAt(selectedRow, 4)
-    );
-
-    if (priceInput == null || priceInput.trim().isEmpty()) {
-        return;
-    }
-
-    double price;
-
-    try {
-        price = Double.parseDouble(priceInput.trim());
-
-        if (!Double.isFinite(price) || price < 0) {
-            JOptionPane.showMessageDialog(
-                this, "Enter a valid non-negative Price!"
-            );
-            return;
-        }
-
-    } catch (NumberFormatException ex) {
-        JOptionPane.showMessageDialog(
-            this, "Enter a valid number for Price!"
-        );
-        return;
-    }
-
-    String supplierID = JOptionPane.showInputDialog(
-        this, "Enter Supplier ID:",
-        model.getValueAt(selectedRow, 5)
-    );
-
-    if (supplierID == null || supplierID.trim().isEmpty()) {
-        return;
-    }
-
-    try {
-        Long.parseLong(supplierID.trim());
-    } catch (NumberFormatException ex) {
-        JOptionPane.showMessageDialog(
-            this, "Supplier ID must be a whole number."
-        );
-        return;
-    }
-
-    boolean updated = updateProduct(
-        id,
-        name.trim(),
-        category.trim(),
-        quantity,
-        price,
-        supplierID.trim()
-        );
-
-    if (updated) {
-        loadProducts();
-
-        JOptionPane.showMessageDialog(
-            this, "Product updated successfully!"
-        );
-       }   
-    else {
-        JOptionPane.showMessageDialog(
-            this,
-            "Product was not updated. Check the ID and details."
-            );
-        }
-    }
-
-
-        
         if (e.getSource() == btnDelete) {
 
             int selectedRow = tblProducts.getSelectedRow();
@@ -377,7 +309,7 @@ public class Main extends JFrame implements ActionListener {
         if (confirm == JOptionPane.YES_OPTION) {
 
             String id = model.getValueAt(
-                selectedRow, 0
+                tblProducts.convertRowIndexToModel(selectedRow), 0
             ).toString();
 
             boolean deleted = deleteProduct(id);
@@ -400,33 +332,6 @@ public class Main extends JFrame implements ActionListener {
       }
     }
 
-        if (e.getSource() == btnSearch) {
-
-            String search = txtSearch.getText().trim();
-            boolean found = false;
-
-            for (int i = 0; i < model.getRowCount(); i++) {
-
-                String id = model.getValueAt(i, 0).toString();
-
-                if (id.equalsIgnoreCase(search)) {
-                    tblProducts.setRowSelectionInterval(i, i);
-                    found = true;
-                    break;
-                }
-            }
-
-            if (found) {
-                JOptionPane.showMessageDialog(
-                    this, "Product found!"
-                );
-            } else {
-                JOptionPane.showMessageDialog(
-                    this, "Product not found."
-                );
-            }
-        }
-
         if (e.getSource() == btnLogout) {
             int confirm = JOptionPane.showConfirmDialog(
                 this,
@@ -439,6 +344,22 @@ public class Main extends JFrame implements ActionListener {
                 System.exit(0);
             }
         }
+    }
+
+    private void filterProducts() {
+        String search = txtSearch.getText().trim().toLowerCase(Locale.ROOT);
+        if (search.isEmpty()) {
+            productSorter.setRowFilter(null);
+            return;
+        }
+        productSorter.setRowFilter(new RowFilter<DefaultTableModel, Integer>() {
+            @Override
+            public boolean include(Entry<? extends DefaultTableModel, ? extends Integer> entry) {
+                String id = entry.getStringValue(0);
+                String name = entry.getStringValue(1).toLowerCase(Locale.ROOT);
+                return id.equalsIgnoreCase(search) || name.contains(search);
+            }
+        });
     }
 
      private void loadProducts() {

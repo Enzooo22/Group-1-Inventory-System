@@ -27,9 +27,16 @@ public class AddProductDialog extends JDialog {
     private final JTextField txtPrice = new JTextField(22);
     private final JTextField txtSupplierID = new JTextField(22);
     private final JButton btnSave = new JButton("Save Product");
+    private final boolean updating;
 
     public AddProductDialog(JFrame owner, ProductSaver saver) {
-        super(owner, "Add Product", true);
+        this(owner, saver, null);
+    }
+
+    // Update reuses the same fields, categories and validation as Add.
+    protected AddProductDialog(JFrame owner, ProductSaver saver, String[] product) {
+        super(owner, product == null ? "Add Product" : "Update Product", true);
+        updating = product != null;
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
         JPanel fields = new JPanel(new GridLayout(0, 2, 10, 10));
@@ -66,6 +73,28 @@ public class AddProductDialog extends JDialog {
         btnSave.addActionListener(e -> saveProduct(saver));
         btnCancel.addActionListener(e -> dispose());
         getRootPane().setDefaultButton(btnSave);
+        if (updating) {
+            txtID.setText(product[0]);
+            txtID.setEditable(false);
+            txtName.setText(product[1]);
+            String category = product[2] == null ? "" : product[2];
+            boolean predefined = false;
+            for (int i = 0; i < categoryBox.getItemCount() - 1; i++) {
+                if (categoryBox.getItemAt(i).equals(category)) {
+                    categoryBox.setSelectedIndex(i);
+                    predefined = true;
+                    break;
+                }
+            }
+            if (!predefined) {
+                categoryBox.setSelectedItem("Others");
+                txtCategory.setText(category);
+            }
+            txtQuantity.setText(product[3]);
+            txtPrice.setText(product[4]);
+            txtSupplierID.setText(product[5]);
+            btnSave.setText("Save Changes");
+        }
         pack();
         setResizable(false);
         setLocationRelativeTo(owner);
@@ -141,7 +170,8 @@ public class AddProductDialog extends JDialog {
             category, quantity, price, Long.toString(supplierID));
         if (saved) {
             dispose();
-            JOptionPane.showMessageDialog(getOwner(), "Product added successfully!");
+            JOptionPane.showMessageDialog(getOwner(), updating
+                ? "Product updated successfully!" : "Product added successfully!");
         } else {
             btnSave.setEnabled(true);
         }
