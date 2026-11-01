@@ -8,7 +8,7 @@ package com.mycompany.inventorysystem;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.Statement; 
 
 public class DatabaseConnection {
 
@@ -18,11 +18,26 @@ public class DatabaseConnection {
     private static final String USER = "root";
     private static final String PASS = "";
 
-    public static Connection getConnection()
-            throws SQLException {
+    public static Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(URL, USER, PASS);
+    }
 
-        return DriverManager.getConnection(
-            URL, USER, PASS
-        );
+    public static void CreateDatabase() {
+        String sql = "CREATE DATABASE IF NOT EXISTS inventory_management";
+
+        try (Connection conn = DriverManager.getConnection(
+                "jdbc:mysql://localhost:3306/",
+                USER,
+                PASS);
+             Statement stmt = conn.createStatement()) {
+
+            stmt.executeUpdate(sql);
+
+            System.out.println("Database is ready!");
+
+        } catch (SQLException e) {
+            System.out.println("Failed to create database!");
+            e.printStackTrace();
+        }
     }
 }
