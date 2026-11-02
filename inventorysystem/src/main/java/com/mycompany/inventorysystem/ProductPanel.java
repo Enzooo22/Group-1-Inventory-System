@@ -4,13 +4,8 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.LinkedList;
 import java.util.Locale;
 
 public class ProductPanel extends JPanel implements ActionListener {
@@ -22,7 +17,7 @@ public class ProductPanel extends JPanel implements ActionListener {
     private DefaultTableModel model;
     private javax.swing.table.TableRowSorter<DefaultTableModel> productSorter;
     private JButton btnAdd, btnUpdate, btnDelete;
-    private LinkedList<String[]> linkedList = new LinkedList<>();
+    private final InventoryManager inventoryManager = new InventoryManager();
 
     public ProductPanel(JFrame owner) {
         this.owner = owner;
@@ -128,25 +123,14 @@ public class ProductPanel extends JPanel implements ActionListener {
         if (e.getSource() == btnAdd) {
             AddProductDialog dialog = new AddProductDialog(owner,
                 (id, name, category, quantity, price, supplierID) -> {
-                    for (String[] product : linkedList) {
-                        if (Long.parseLong(product[0]) == Long.parseLong(id)) {
-                            JOptionPane.showMessageDialog(owner, "Product ID already exists!");
-                            return false;
-                        }
-                    }
-
                     if (!saveProduct(id, name, category, quantity, price, supplierID)) {
                         return false;
                     }
 
-                    linkedList.add(new String[]{
-                        id, name, category, String.valueOf(quantity),
-                        String.valueOf(price), supplierID
-                    });
                     model.addRow(new Object[]{
                         id, name, category, quantity, price, supplierID
                     });
-                    lblTotal.setText("Total Products: " + linkedList.size());
+                    lblTotal.setText("Total Products: " + inventoryManager.getProducts().size());
                     return true;
                 });
             dialog.setVisible(true);
@@ -170,14 +154,6 @@ public class ProductPanel extends JPanel implements ActionListener {
                         JOptionPane.showMessageDialog(owner,
                             "Product was not updated. Check the ID and details.");
                         return false;
-                    }
-                    String[] updated = {id, name, category, String.valueOf(quantity),
-                        String.valueOf(price), supplierID};
-                    for (int i = 0; i < linkedList.size(); i++) {
-                        if (linkedList.get(i)[0].equals(id)) {
-                            linkedList.set(i, updated);
-                            break;
-                        }
                     }
                     Object[] values = {id, name, category, quantity, price, supplierID};
                     for (int column = 0; column < values.length; column++) {
@@ -244,198 +220,61 @@ public class ProductPanel extends JPanel implements ActionListener {
         });
     }
 
-     private void loadProducts() {
-
-        java.util.List<Object[]> rows = new ArrayList<>();
-        LinkedList<String[]> products = new LinkedList<>();
-
-        String sql = "SELECT product_id, product_name, " +
-            "category, quantity, price, supplier_id " +
-            "FROM products";
-
-        try (java.sql.Connection con =
-                 DatabaseConnection.getConnection();
-             java.sql.PreparedStatement ps =
-                 con.prepareStatement(sql);
-             java.sql.ResultSet rs = ps.executeQuery()) {
-
-            while (rs.next()) {
-
-                String id = rs.getString("product_id");
-                String name = rs.getString("product_name");
-                String category = rs.getString("category");
-                int quantity = rs.getInt("quantity");
-                double price = rs.getDouble("price");
-
-                Object supplierValue =
-                    rs.getObject("supplier_id");
-
-                String supplierID =
-                    supplierValue == null
-                        ? ""
-                        : supplierValue.toString();
-
-                rows.add(new Object[]{
-                    id, name, category,
-                    quantity, price, supplierID
-                });
-
-                products.add(new String[]{
-                    id, name, category,
-                    String.valueOf(quantity),
-                    String.valueOf(price), supplierID
-                });
-            }
-
-            model.setRowCount(0);
-            linkedList.clear();
-            linkedList.addAll(products);
-            for (Object[] row : rows) model.addRow(row);
-            lblTotal.setText(
-                "Total Products: " + model.getRowCount()
-            );
-
-        } catch (java.sql.SQLException ex) {
-
-            JOptionPane.showMessageDialog(
-                owner,
-                "Unable to load products: " + ex.getMessage()
-            );
+    private void loadProducts() {
+        try {
+            inventoryManager.loadProducts();
+            refreshTable();
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(owner, "Unable to load products: " + ex.getMessage());
         }
     }
-    
-     
-    private boolean updateProduct(
-            String id,
-            String name,
-            String category,
-            int quantity,
-            double price,
-            String supplierID) {
 
-        String sql = "UPDATE products SET " +
-        "product_name = ?, category = ?, " +
-        "quantity = ?, price = ?, supplier_id = ? " +
-        "WHERE product_id = ?";
+    private void refreshTable() {
+        model.setRowCount(0);
+        for (Product product : inventoryManager.getProducts()) {
+            model.addRow(new Object[]{
+                Long.toString(product.getProductId()), product.getProductName(), product.getCategory(),
+                product.getQuantity(), product.getPrice(),
+                product.getSupplierId() == null ? "" : product.getSupplierId().toString()
+            });
+        }
+        lblTotal.setText("Total Products: " + model.getRowCount());
+    }
 
-    try (java.sql.Connection con =
-             DatabaseConnection.getConnection();
-         java.sql.PreparedStatement ps =
-             con.prepareStatement(sql)) {
-
-        if (!supplierExists(con, supplierID)) return false;
-        ps.setString(1, name);
-        ps.setString(2, category);
-        ps.setInt(3, quantity);
-        ps.setDouble(4, price);
-        ps.setLong(5, Long.parseLong(supplierID));
-        ps.setLong(6, Long.parseLong(id));
-
-        int rowsUpdated = ps.executeUpdate();
-
-        return rowsUpdated > 0;
-
-    } catch (java.sql.SQLException |
-             NumberFormatException ex) {
-
-        JOptionPane.showMessageDialog(
-            owner,
-            "Unable to update product: " + ex.getMessage()
-        );
-
+    private boolean saveProduct(String id, String name, String category,
+                                int quantity, double price, String supplierID) {
+        try {
+            return inventoryManager.addProduct(new Product(Long.parseLong(id), name, category,
+                quantity, Long.valueOf(supplierID), price));
+        } catch (SQLException | NumberFormatException ex) {
+            JOptionPane.showMessageDialog(owner, "Unable to save product: " + ex.getMessage());
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(owner, ex.getMessage());
+        }
         return false;
     }
-}
 
-     
-     private boolean deleteProduct(String id) {
-
-    String sql = "DELETE FROM products WHERE product_id = ?";
-
-    try (java.sql.Connection con =
-             DatabaseConnection.getConnection();
-         java.sql.PreparedStatement ps =
-             con.prepareStatement(sql)) {
-
-        ps.setLong(1, Long.parseLong(id));
-
-        int rowsDeleted = ps.executeUpdate();
-
-        return rowsDeleted > 0;
-
-    } catch (java.sql.SQLException |
-             NumberFormatException ex) {
-
-        JOptionPane.showMessageDialog(
-            owner,
-            "Unable to delete product: " + ex.getMessage()
-        );
-
+    private boolean updateProduct(String id, String name, String category,
+                                  int quantity, double price, String supplierID) {
+        try {
+            return inventoryManager.updateProduct(new Product(Long.parseLong(id), name, category,
+                quantity, Long.valueOf(supplierID), price));
+        } catch (SQLException | NumberFormatException ex) {
+            JOptionPane.showMessageDialog(owner, "Unable to update product: " + ex.getMessage());
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(owner, ex.getMessage());
+        }
         return false;
     }
-}
-     
-    private boolean saveProduct(
-            String id,
-            String name,
-            String category,
-            int quantity,
-            double price,
-            String supplierID) {
 
-        String sql = "INSERT INTO products " +
-            "(product_id, product_name, category, " +
-            "quantity, price, supplier_id) " +
-            "VALUES (?, ?, ?, ?, ?, ?)";
-
-        try (java.sql.Connection con =
-                 DatabaseConnection.getConnection();
-             java.sql.PreparedStatement ps =
-                 con.prepareStatement(sql)) {
-
-            try (java.sql.PreparedStatement check = con.prepareStatement(
-                    "SELECT product_id FROM products WHERE product_id = ?")) {
-                check.setLong(1, Long.parseLong(id));
-                try (java.sql.ResultSet rs = check.executeQuery()) {
-                    if (rs.next()) {
-                        JOptionPane.showMessageDialog(owner, "Product ID already exists!");
-                        return false;
-                    }
-                }
-            }
-
-            if (!supplierExists(con, supplierID)) return false;
-            ps.setLong(1, Long.parseLong(id));
-            ps.setString(2, name);
-            ps.setString(3, category);
-            ps.setInt(4, quantity);
-            ps.setDouble(5, price);
-            ps.setLong(6, Long.parseLong(supplierID));
-
-            ps.executeUpdate();
-            return true;
-
-        } catch (java.sql.SQLException |
-                 NumberFormatException ex) {
-
-            JOptionPane.showMessageDialog(
-                owner,
-                "Unable to save product: " + ex.getMessage()
-            );
+    private boolean deleteProduct(String id) {
+        try {
+            boolean deleted = inventoryManager.deleteProduct(Long.parseLong(id));
+            if (deleted) refreshTable();
+            return deleted;
+        } catch (SQLException | NumberFormatException ex) {
+            JOptionPane.showMessageDialog(owner, "Unable to delete product: " + ex.getMessage());
             return false;
         }
-    }
-
-    private boolean supplierExists(Connection con, String supplierID) throws SQLException {
-        try (PreparedStatement check = con.prepareStatement(
-                "SELECT supplier_id FROM suppliers WHERE supplier_id = ?")) {
-            check.setLong(1, Long.parseLong(supplierID));
-            try (ResultSet rs = check.executeQuery()) {
-                if (rs.next()) return true;
-            }
-        }
-        JOptionPane.showMessageDialog(owner,
-            "Supplier ID does not exist. Please choose an existing supplier.");
-        return false;
     }
 }
