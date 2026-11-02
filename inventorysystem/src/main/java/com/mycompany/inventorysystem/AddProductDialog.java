@@ -1,8 +1,7 @@
 package com.mycompany.inventorysystem;
 
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-import java.awt.GridLayout;
+import java.awt.Dimension;
+import java.math.BigDecimal;
 import javax.swing.*;
 
 public class AddProductDialog extends JDialog {
@@ -28,6 +27,9 @@ public class AddProductDialog extends JDialog {
     private final JTextField txtSupplierID = new JTextField(22);
     private final JButton btnSave = new JButton("Save Product");
     private final boolean updating;
+    private final JLabel[] fieldLabels = new JLabel[6];
+    private final JLabel pesoLabel = new JLabel("\u20B1");
+    private final JButton btnCancel = new JButton("Cancel");
 
     public AddProductDialog(JFrame owner, ProductSaver saver) {
         this(owner, saver, null);
@@ -39,37 +41,31 @@ public class AddProductDialog extends JDialog {
         updating = product != null;
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
-        JPanel fields = new JPanel(new GridLayout(0, 2, 10, 10));
-        fields.setBorder(BorderFactory.createEmptyBorder(16, 16, 8, 16));
-        addField(fields, "Product ID", txtID);
-        addField(fields, "Product Name", txtName);
-        JPanel categoryPanel = new JPanel(new BorderLayout(0, 6));
-        categoryPanel.add(categoryBox, BorderLayout.NORTH);
-        categoryPanel.add(txtCategory, BorderLayout.SOUTH);
+        setLayout(null);
+        addField("Product ID", txtID, 0);
+        addField("Product Name", txtName, 1);
+        JLabel categoryLabel = new JLabel("Category:");
+        categoryLabel.setBounds(16, 100, 180, 30);
+        categoryLabel.setLabelFor(categoryBox);
+        add(categoryLabel);
+        categoryBox.setBounds(206, 100, 260, 30);
+        add(categoryBox);
+        txtCategory.setBounds(206, 136, 260, 30);
         txtCategory.setVisible(false);
         txtCategory.setToolTipText("Enter a custom category");
-        categoryBox.addActionListener(e -> {
-            txtCategory.setVisible("Others".equals(categoryBox.getSelectedItem()));
-            pack();
-        });
-        fields.add(new JLabel("Category:"));
-        fields.add(categoryPanel);
-        addField(fields, "Quantity", txtQuantity);
-        JPanel pricePanel = new JPanel(new BorderLayout(6, 0));
-        pricePanel.add(new JLabel("\u20B1"), BorderLayout.WEST);
-        pricePanel.add(txtPrice, BorderLayout.CENTER);
-        fields.add(new JLabel("Price:"));
-        fields.add(pricePanel);
-        addField(fields, "Supplier ID", txtSupplierID);
-        add(fields, BorderLayout.CENTER);
+        add(txtCategory);
+        categoryBox.addActionListener(e -> positionFields());
+        addField("Quantity", txtQuantity, 3);
+        addField("Price", txtPrice, 4);
 
-        JButton btnCancel = new JButton("Cancel");
-        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        buttons.setBorder(BorderFactory.createEmptyBorder(0, 8, 8, 8));
-        buttons.add(btnSave);
-        buttons.add(btnCancel);
-        add(buttons, BorderLayout.SOUTH);
+        pesoLabel.setBounds(206, 180, 20, 30);
+        add(pesoLabel);
+        addField("Supplier ID", txtSupplierID, 5);
 
+        add(btnSave);
+        add(btnCancel);
+        btnCancel.setBounds(346, 266, 120, 30);
+        positionFields();
         btnSave.addActionListener(e -> saveProduct(saver));
         btnCancel.addActionListener(e -> dispose());
         getRootPane().setDefaultButton(btnSave);
@@ -100,13 +96,32 @@ public class AddProductDialog extends JDialog {
         setLocationRelativeTo(owner);
     }
 
-    private void addField(JPanel panel, String label, JTextField field) {
+    private void addField(String label, JTextField field, int row) {
         JLabel fieldLabel = new JLabel(label + ":");
+        fieldLabels[row] = fieldLabel;
+        fieldLabel.setBounds(16, 20 + row * 40, 180, 30);
         fieldLabel.setLabelFor(field);
-        panel.add(fieldLabel);
-        panel.add(field);
+        add(fieldLabel);
+        field.setBounds(206, 20 + row * 40, 260, 30);
+        add(field);
     }
 
+    private void positionFields() {
+        boolean custom = "Others".equals(categoryBox.getSelectedItem());
+        int offset = custom ? 40 : 0;
+        txtCategory.setVisible(custom);
+        fieldLabels[3].setBounds(16, 140 + offset, 180, 30);
+        fieldLabels[4].setBounds(16, 180 + offset, 180, 30);
+        fieldLabels[5].setBounds(16, 220 + offset, 180, 30);
+        pesoLabel.setBounds(206, 180 + offset, 20, 30);
+        btnCancel.setBounds(346, 266 + offset, 120, 30);
+        txtQuantity.setBounds(206, 140 + offset, 260, 30);
+        txtPrice.setBounds(230, 180 + offset, 236, 30);
+        txtSupplierID.setBounds(206, 220 + offset, 260, 30);
+        btnSave.setBounds(186, 266 + offset, 150, 30);
+        getContentPane().setPreferredSize(new Dimension(482, 312 + offset));
+        pack();
+    }
     private void saveProduct(ProductSaver saver) {
         JTextField[] fields = {
             txtID, txtName, txtQuantity, txtPrice, txtSupplierID
@@ -128,6 +143,16 @@ public class AddProductDialog extends JDialog {
                 showError("Please enter a custom category!", txtCategory);
                 return;
             }
+        }
+
+        String name = txtName.getText().trim();
+        if (name.codePointCount(0, name.length()) > 150) {
+            showError("Product Name must be at most 150 characters.", txtName);
+            return;
+        }
+        if (category.codePointCount(0, category.length()) > 100) {
+            showError("Category must be at most 100 characters.", txtCategory);
+            return;
         }
 
         long id;
@@ -156,18 +181,25 @@ public class AddProductDialog extends JDialog {
             return;
         }
         try {
-            price = Double.parseDouble(txtPrice.getText().trim());
-            if (!Double.isFinite(price) || price < 0 || price > 9999999999.99) {
+            BigDecimal amount = new BigDecimal(txtPrice.getText().trim());
+            if (amount.scale() > 2 || amount.signum() < 0
+                    || amount.compareTo(new BigDecimal("9999999999.99")) > 0) {
                 throw new NumberFormatException();
             }
+            price = amount.doubleValue();
         } catch (NumberFormatException ex) {
-            showError("Price must be a valid number between 0 and 9999999999.99.", txtPrice);
+            showError("Price must be between 0 and 9999999999.99 with at most two decimal places.", txtPrice);
             return;
         }
 
         btnSave.setEnabled(false);
-        boolean saved = saver.save(Long.toString(id), txtName.getText().trim(),
-            category, quantity, price, Long.toString(supplierID));
+        boolean saved;
+        try {
+            saved = saver.save(Long.toString(id), name,
+                category, quantity, price, Long.toString(supplierID));
+        } finally {
+            btnSave.setEnabled(true);
+        }
         if (saved) {
             dispose();
             JOptionPane.showMessageDialog(getOwner(), updating
