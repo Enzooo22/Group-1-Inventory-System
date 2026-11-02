@@ -42,10 +42,6 @@ public class Main extends JFrame implements ActionListener {
         setSize(1000, 650);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(null);
-        setTitle("Inventory Management System");
-    setSize(1000, 650);
-    setDefaultCloseOperation(EXIT_ON_CLOSE);
-    setLayout(null);
 
     // TEST DATABASE CONNECTION
     try (java.sql.Connection con =
@@ -62,11 +58,6 @@ public class Main extends JFrame implements ActionListener {
     }
 
  
-        lblTitle = new JLabel("INVENTORY MANAGEMENT SYSTEM");
-        lblTitle.setBounds(250, 15, 400, 30);
-        add(lblTitle);
-
-
         lblTitle = new JLabel("INVENTORY MANAGEMENT SYSTEM");
         lblTitle.setBounds(250, 15, 400, 30);
         add(lblTitle);
@@ -342,8 +333,8 @@ public class Main extends JFrame implements ActionListener {
 
      private void loadProducts() {
 
-        model.setRowCount(0);
-        linkedList.clear();
+        java.util.List<Object[]> rows = new ArrayList<>();
+        LinkedList<String[]> products = new LinkedList<>();
 
         String sql = "SELECT product_id, product_name, " +
             "category, quantity, price, supplier_id " +
@@ -371,18 +362,22 @@ public class Main extends JFrame implements ActionListener {
                         ? ""
                         : supplierValue.toString();
 
-                model.addRow(new Object[]{
+                rows.add(new Object[]{
                     id, name, category,
                     quantity, price, supplierID
                 });
 
-                linkedList.add(new String[]{
+                products.add(new String[]{
                     id, name, category,
                     String.valueOf(quantity),
                     String.valueOf(price), supplierID
                 });
             }
 
+            model.setRowCount(0);
+            linkedList.clear();
+            linkedList.addAll(products);
+            for (Object[] row : rows) model.addRow(row);
             lblTotal.setText(
                 "Total Products: " + model.getRowCount()
             );
@@ -415,6 +410,7 @@ public class Main extends JFrame implements ActionListener {
          java.sql.PreparedStatement ps =
              con.prepareStatement(sql)) {
 
+        if (!supplierExists(con, supplierID)) return false;
         ps.setString(1, name);
         ps.setString(2, category);
         ps.setInt(3, quantity);
@@ -495,6 +491,7 @@ public class Main extends JFrame implements ActionListener {
                 }
             }
 
+            if (!supplierExists(con, supplierID)) return false;
             ps.setLong(1, Long.parseLong(id));
             ps.setString(2, name);
             ps.setString(3, category);
@@ -514,6 +511,19 @@ public class Main extends JFrame implements ActionListener {
             );
             return false;
         }
-    } 
+    }
+
+    private boolean supplierExists(Connection con, String supplierID) throws SQLException {
+        try (PreparedStatement check = con.prepareStatement(
+                "SELECT supplier_id FROM suppliers WHERE supplier_id = ?")) {
+            check.setLong(1, Long.parseLong(supplierID));
+            try (ResultSet rs = check.executeQuery()) {
+                if (rs.next()) return true;
+            }
+        }
+        JOptionPane.showMessageDialog(this,
+            "Supplier ID does not exist. Please choose an existing supplier.");
+        return false;
+    }
  }    
  
