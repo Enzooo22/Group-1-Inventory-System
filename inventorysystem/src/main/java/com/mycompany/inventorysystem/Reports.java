@@ -23,72 +23,43 @@ public class Reports extends JFrame {
     private final JLabel restockMessage = new JLabel("Loading inventory...");
     private final JLabel refreshMessage = new JLabel(" ");
     private boolean showingError;
-    private JTable table;
-    private JLabel title,lowStockTitle,restockTitle;
-    private JButton refresh;
 
-     Reports() {
+    public Reports() {
         setTitle("Inventory Reports");
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setLayout(null);
         setSize(1050, 740);
         setResizable(false);
 
-        Color red = new Color(255, 120, 120);
-        Color darkRed = new Color(142, 32, 40);
-        Color black = new Color(35, 35, 35);
-        
-        title = new JLabel("LOW-STOCK AND RESTOCK REPORTS",SwingConstants.CENTER);
-        title.setFont(new Font("Arial" , Font.BOLD, 18));
+        JLabel title = new JLabel("LOW-STOCK AND RESTOCK REPORTS", SwingConstants.CENTER);
+        title.setFont(new Font("Arial", Font.BOLD, 18));
         title.setBounds(250, 15, 600, 30);
         add(title);
-        
-        
-        refresh = new JButton("Refresh");
+        JButton refresh = new JButton("Refresh");
         refresh.setBounds(890, 15, 120, 30);
+        refresh.setBackground(new Color(255, 120, 120));
+        refresh.setForeground(new Color(35, 35, 35));
         refresh.addActionListener(e -> loadReports());
-        refresh.setBackground(red);
-        refresh.setForeground(black);
         add(refresh);
 
-        lowStockTitle = new JLabel("Low Stock: 1-10 units | Out of Stock: 0 units");
+        JLabel lowStockTitle = new JLabel("Low Stock: 1-10 units | Out of Stock: 0 units");
         lowStockTitle.setBounds(20, 60, 900, 25);
-        lowStockMessage.setFont(new Font("Arial", Font.BOLD, 12));
+        lowStockTitle.setFont(new Font("Arial", Font.BOLD, 12));
         add(lowStockTitle);
-        
         lowStockModel = createModel(new String[]{"Product ID", "Product Name", "Category",
             "Quantity", "Supplier ID", "Stock Status"});
-       
         addTable(lowStockModel, 90, 210);
-        table.setForeground(Color.black);
-        table.setBackground(Color.WHITE);
-        table.getTableHeader().setBackground(new Color(198, 40 ,40));
-        table.getTableHeader().setForeground(Color.WHITE);
-        table.setSelectionBackground(new Color(255, 205, 210));
-        table.setSelectionForeground(Color.BLACK);
-        table.setGridColor(new Color(240, 180, 180));
-        
-        
         lowStockMessage.setBounds(20, 305, 990, 25);
         lowStockMessage.setFont(new Font("Arial", Font.BOLD, 13));
         add(lowStockMessage);
 
-        restockTitle = new JLabel("Restock Report: products below 20 units | Suggested quantity = 20 - current quantity");
+        JLabel restockTitle = new JLabel("Restock Report: products below 20 units | Suggested quantity = 20 - current quantity");
         restockTitle.setBounds(20, 350, 990, 25);
         restockTitle.setFont(new Font("Arial", Font.BOLD, 13));
         add(restockTitle);
-        
         restockModel = createModel(new String[]{"Product ID", "Product Name", "Category",
             "Quantity", "Supplier ID", "Stock Status", "Suggested Restock Quantity"});
         addTable(restockModel, 380, 230);
-        table.setForeground(Color.black);
-        table.setBackground(Color.WHITE);
-        table.getTableHeader().setBackground(new Color(198, 40 ,40));
-        table.getTableHeader().setForeground(Color.WHITE);
-        table.setSelectionBackground(new Color(255, 205, 210));
-        table.setSelectionForeground(Color.BLACK);
-        table.setGridColor(new Color(240, 180, 180));
-        
         restockMessage.setBounds(20, 615, 990, 25);
         restockMessage.setFont(new Font("Arial", Font.BOLD, 13));
         add(restockMessage);
@@ -122,7 +93,14 @@ public class Reports extends JFrame {
     }
 
     private void addTable(DefaultTableModel model, int y, int height) {
-        table = new JTable(model);
+        JTable table = new JTable(model);
+        table.setForeground(Color.BLACK);
+        table.setBackground(Color.WHITE);
+        table.getTableHeader().setBackground(new Color(198, 40, 40));
+        table.getTableHeader().setForeground(Color.WHITE);
+        table.setSelectionBackground(new Color(255, 205, 210));
+        table.setSelectionForeground(Color.BLACK);
+        table.setGridColor(new Color(240, 180, 180));
         table.setAutoCreateRowSorter(true);
         table.getColumnModel().getColumn(1).setPreferredWidth(170);
         table.getColumnModel().getColumn(2).setPreferredWidth(150);
