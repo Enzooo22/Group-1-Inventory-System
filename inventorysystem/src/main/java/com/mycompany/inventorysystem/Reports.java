@@ -1,5 +1,7 @@
 package com.mycompany.inventorysystem;
 
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.sql.Connection;
@@ -21,40 +23,77 @@ public class Reports extends JFrame {
     private final JLabel restockMessage = new JLabel("Loading inventory...");
     private final JLabel refreshMessage = new JLabel(" ");
     private boolean showingError;
+    private JTable table;
+    private JLabel title,lowStockTitle,restockTitle;
+    private JButton refresh;
 
-    public Reports() {
+     Reports() {
         setTitle("Inventory Reports");
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setLayout(null);
         setSize(1050, 740);
         setResizable(false);
 
-        JLabel title = new JLabel("LOW-STOCK AND RESTOCK REPORTS");
-        title.setBounds(20, 15, 600, 30);
+        Color red = new Color(255, 120, 120);
+        Color darkRed = new Color(142, 32, 40);
+        Color black = new Color(35, 35, 35);
+        
+        title = new JLabel("LOW-STOCK AND RESTOCK REPORTS",SwingConstants.CENTER);
+        title.setFont(new Font("Arial" , Font.BOLD, 18));
+        title.setBounds(250, 15, 600, 30);
         add(title);
-        JButton refresh = new JButton("Refresh");
+        
+        
+        refresh = new JButton("Refresh");
         refresh.setBounds(890, 15, 120, 30);
         refresh.addActionListener(e -> loadReports());
+        refresh.setBackground(red);
+        refresh.setForeground(black);
         add(refresh);
 
-        JLabel lowStockTitle = new JLabel("Low Stock: 1-10 units | Out of Stock: 0 units");
+        lowStockTitle = new JLabel("Low Stock: 1-10 units | Out of Stock: 0 units");
         lowStockTitle.setBounds(20, 60, 900, 25);
+        lowStockMessage.setFont(new Font("Arial", Font.BOLD, 12));
         add(lowStockTitle);
+        
         lowStockModel = createModel(new String[]{"Product ID", "Product Name", "Category",
             "Quantity", "Supplier ID", "Stock Status"});
+       
         addTable(lowStockModel, 90, 210);
+        table.setForeground(Color.black);
+        table.setBackground(Color.WHITE);
+        table.getTableHeader().setBackground(new Color(198, 40 ,40));
+        table.getTableHeader().setForeground(Color.WHITE);
+        table.setSelectionBackground(new Color(255, 205, 210));
+        table.setSelectionForeground(Color.BLACK);
+        table.setGridColor(new Color(240, 180, 180));
+        
+        
         lowStockMessage.setBounds(20, 305, 990, 25);
+        lowStockMessage.setFont(new Font("Arial", Font.BOLD, 13));
         add(lowStockMessage);
 
-        JLabel restockTitle = new JLabel("Restock Report: products below 20 units | Suggested quantity = 20 - current quantity");
+        restockTitle = new JLabel("Restock Report: products below 20 units | Suggested quantity = 20 - current quantity");
         restockTitle.setBounds(20, 350, 990, 25);
+        restockTitle.setFont(new Font("Arial", Font.BOLD, 13));
         add(restockTitle);
+        
         restockModel = createModel(new String[]{"Product ID", "Product Name", "Category",
             "Quantity", "Supplier ID", "Stock Status", "Suggested Restock Quantity"});
         addTable(restockModel, 380, 230);
+        table.setForeground(Color.black);
+        table.setBackground(Color.WHITE);
+        table.getTableHeader().setBackground(new Color(198, 40 ,40));
+        table.getTableHeader().setForeground(Color.WHITE);
+        table.setSelectionBackground(new Color(255, 205, 210));
+        table.setSelectionForeground(Color.BLACK);
+        table.setGridColor(new Color(240, 180, 180));
+        
         restockMessage.setBounds(20, 615, 990, 25);
+        restockMessage.setFont(new Font("Arial", Font.BOLD, 13));
         add(restockMessage);
         refreshMessage.setBounds(20, 655, 990, 25);
+        refreshMessage.setFont(new Font("Arial", Font.BOLD, 13));
         add(refreshMessage);
 
         // Also reload after returning from product edits in the main window.
@@ -83,7 +122,7 @@ public class Reports extends JFrame {
     }
 
     private void addTable(DefaultTableModel model, int y, int height) {
-        JTable table = new JTable(model);
+        table = new JTable(model);
         table.setAutoCreateRowSorter(true);
         table.getColumnModel().getColumn(1).setPreferredWidth(170);
         table.getColumnModel().getColumn(2).setPreferredWidth(150);
