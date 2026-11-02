@@ -9,14 +9,15 @@ import java.util.LinkedList;
 
 public class Main extends JFrame implements ActionListener {
 
-    private JLabel lblTitle, lblTotal, lblLowStock;
+    private JLabel lblTitle, lblTotal;
     private JTextField txtSearch;
     private JTable tblProducts;
     private DefaultTableModel model;
+    private javax.swing.table.TableRowSorter<DefaultTableModel> productSorter;
 
-    private JButton btnDashboard, btnProducts, btnSuppliers;
+    private JButton btnSuppliers;
     private JButton btnReports, btnAdd, btnUpdate;
-    private JButton btnDelete, btnSearch, btnLogout;
+    private JButton btnDelete, btnLogout;
 
     private JPanel sidebar, content;
     
@@ -38,10 +39,6 @@ public class Main extends JFrame implements ActionListener {
         setSize(1000, 650);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(null);
-        setTitle("Inventory Management System");
-    setSize(1000, 650);
-    setDefaultCloseOperation(EXIT_ON_CLOSE);
-    setLayout(null);
 
     // TEST DATABASE CONNECTION
     try (java.sql.Connection con =
@@ -62,34 +59,21 @@ public class Main extends JFrame implements ActionListener {
         lblTitle.setBounds(250, 15, 400, 30);
         add(lblTitle);
 
-
-        lblTitle = new JLabel("INVENTORY MANAGEMENT SYSTEM");
-        lblTitle.setBounds(250, 15, 400, 30);
-        add(lblTitle);
-
         sidebar = new JPanel();
         sidebar.setLayout(null);
         sidebar.setBounds(10, 60, 180, 540);
         add(sidebar);
 
-        btnDashboard = new JButton("Dashboard");
-        btnDashboard.setBounds(10, 20, 160, 35);
-        sidebar.add(btnDashboard);
-
-        btnProducts = new JButton("Products");
-        btnProducts.setBounds(10, 65, 160, 35);
-        sidebar.add(btnProducts);
-
         btnSuppliers = new JButton("Suppliers");
-        btnSuppliers.setBounds(10, 110, 160, 35);
+        btnSuppliers.setBounds(10, 20, 160, 35);
         sidebar.add(btnSuppliers);
 
         btnReports = new JButton("Reports");
-        btnReports.setBounds(10, 155, 160, 35);
+        btnReports.setBounds(10, 65, 160, 35);
         sidebar.add(btnReports);
 
         btnLogout = new JButton("Logout");
-        btnLogout.setBounds(10, 470, 160, 35);
+        btnLogout.setBounds(10, 485, 160, 35);
         sidebar.add(btnLogout);
 
         content = new JPanel();
@@ -97,36 +81,32 @@ public class Main extends JFrame implements ActionListener {
         content.setBounds(200, 60, 770, 540);
         add(content);
 
-        JLabel lblDashboard = new JLabel("Dashboard");
-        lblDashboard.setBounds(20, 10, 200, 30);
-        content.add(lblDashboard);
+        JLabel lblProductManagement = new JLabel("Product Management");
+        lblProductManagement.setBounds(20, 10, 250, 30);
+        content.add(lblProductManagement);
 
         lblTotal = new JLabel("Total Products: 0");
-        lblTotal.setBounds(20, 50, 200, 40);
+        lblTotal.setBounds(20, 45, 200, 30);
         content.add(lblTotal);
 
-        lblLowStock = new JLabel("Low Stock: 0");
-        lblLowStock.setBounds(250, 50, 200, 40);
-        content.add(lblLowStock);
-
         txtSearch = new JTextField();
-        txtSearch.setBounds(20, 110, 250, 30);
+        txtSearch.setBounds(20, 90, 300, 30);
+        txtSearch.setToolTipText("Search by Product ID or Product Name");
         content.add(txtSearch);
-
-        btnSearch = new JButton("Search");
-        btnSearch.setBounds(280, 110, 100, 30);
-        content.add(btnSearch);
+        JLabel searchLabel = new JLabel("Search by ID or name");
+        searchLabel.setBounds(335, 90, 200, 30);
+        content.add(searchLabel);
 
         btnAdd = new JButton("Add Product");
-        btnAdd.setBounds(20, 160, 120, 30);
+        btnAdd.setBounds(20, 135, 120, 30);
         content.add(btnAdd);
 
         btnUpdate = new JButton("Update");
-        btnUpdate.setBounds(150, 160, 100, 30);
+        btnUpdate.setBounds(150, 135, 100, 30);
         content.add(btnUpdate);
 
         btnDelete = new JButton("Delete");
-        btnDelete.setBounds(260, 160, 100, 30);
+        btnDelete.setBounds(260, 135, 100, 30);
         content.add(btnDelete);
 
         String[] columns = {
@@ -134,21 +114,68 @@ public class Main extends JFrame implements ActionListener {
             "Quantity", "Price", "Supplier ID"
         };
 
-        model = new DefaultTableModel(columns, 0);
+        model = new DefaultTableModel(columns, 0) {
+            @Override
+            public Class<?> getColumnClass(int column) {
+                if (column == 4) return Double.class;
+                if (column == 3) return Integer.class;
+                return String.class;
+            }
+
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         tblProducts = new JTable(model);
+        productSorter = new javax.swing.table.TableRowSorter<>(model);
+        productSorter.setSortsOnUpdates(true);
+        // IDs remain strings for existing database methods, but sort numerically.
+        Comparator<String> idComparator = (left, right) -> {
+            if (left.isEmpty() || right.isEmpty()) return left.compareTo(right);
+            return Long.compare(Long.parseLong(left), Long.parseLong(right));
+        };
+        productSorter.setComparator(0, idComparator);
+        productSorter.setComparator(5, idComparator);
+        tblProducts.setRowSorter(productSorter);
+        javax.swing.table.DefaultTableCellRenderer textRenderer =
+            new javax.swing.table.DefaultTableCellRenderer();
+        textRenderer.setHorizontalAlignment(SwingConstants.LEFT);
+        javax.swing.table.DefaultTableCellRenderer numberRenderer =
+            new javax.swing.table.DefaultTableCellRenderer();
+        numberRenderer.setHorizontalAlignment(SwingConstants.RIGHT);
+        for (int column = 0; column < model.getColumnCount(); column++) {
+            tblProducts.getColumnModel().getColumn(column).setCellRenderer(
+                column == 1 || column == 2 ? textRenderer : numberRenderer);
+        }
+        txtSearch.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { filterProducts(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { filterProducts(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { filterProducts(); }
+        });
+        // Format only the display; editing, sorting and database writes use numbers.
+        tblProducts.getColumnModel().getColumn(4).setCellRenderer(
+            new javax.swing.table.DefaultTableCellRenderer() {
+                private final java.text.DecimalFormat pesoFormat = new java.text.DecimalFormat(
+                    "\u20B1#,##0.00", java.text.DecimalFormatSymbols.getInstance(Locale.US));
+
+                @Override
+                protected void setValue(Object value) {
+                    setHorizontalAlignment(SwingConstants.RIGHT);
+                    setText(value instanceof Number ? pesoFormat.format(value)
+                        : value == null ? "" : value.toString());
+                }
+            });
 
         JScrollPane scrollPane = new JScrollPane(tblProducts);
-        scrollPane.setBounds(20, 210, 730, 300);
+        scrollPane.setBounds(20, 185, 730, 335);
         content.add(scrollPane);
 
-        btnDashboard.addActionListener(this);
-        btnProducts.addActionListener(this);
         btnSuppliers.addActionListener(this);
         btnReports.addActionListener(this);
         btnAdd.addActionListener(this);
         btnUpdate.addActionListener(this);
         btnDelete.addActionListener(this);
-        btnSearch.addActionListener(this);
         btnLogout.addActionListener(this);
 
         loadProducts();
@@ -163,323 +190,75 @@ public class Main extends JFrame implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
 
-        if (e.getSource() == btnDashboard) {
-            JOptionPane.showMessageDialog(this, "Dashboard");
-        }
-
-        if (e.getSource() == btnProducts) {
-            JOptionPane.showMessageDialog(this, "Products");
-        }
-
         if (e.getSource() == btnSuppliers) {
         new SupplierManagement();
 }
         
         if (e.getSource() == btnReports) {
-            JOptionPane.showMessageDialog(this, "Reports");
+            new Reports();
         }
         if (e.getSource() == btnAdd) {
+            AddProductDialog dialog = new AddProductDialog(this,
+                (id, name, category, quantity, price, supplierID) -> {
+                    for (String[] product : linkedList) {
+                        if (Long.parseLong(product[0]) == Long.parseLong(id)) {
+                            JOptionPane.showMessageDialog(this, "Product ID already exists!");
+                            return false;
+                        }
+                    }
 
-            String id = JOptionPane.showInputDialog(
-                this, "Enter Product ID:"
-            );
+                    if (!saveProduct(id, name, category, quantity, price, supplierID)) {
+                        return false;
+                    }
 
-            if (id == null || id.trim().isEmpty()) {
-                JOptionPane.showMessageDialog(
-                    this, "Please enter Product ID!"
-                );
-                return;
-            } 
-            boolean exists = false;
-
-            for (String[] product : linkedList) {
-                if (product[0].equalsIgnoreCase(id.trim())) {
-                    exists = true;
-                    break;
-                }
-            }
-
-            if (exists) {
-                JOptionPane.showMessageDialog(
-                    this, "Product ID already exists!"
-                );
-                return;
-            }
-
-            String name = JOptionPane.showInputDialog(
-                this, "Enter Product Name:"
-            );
-
-            if (name == null || name.trim().isEmpty()) {
-                JOptionPane.showMessageDialog(
-                    this, "Please enter Product Name!"
-                );
-                return;
-            }
-             String category = JOptionPane.showInputDialog(
-                this, "Enter Category:"
-            );
-
-            if (category == null || category.trim().isEmpty()) {
-                JOptionPane.showMessageDialog(
-                    this, "Please enter Category!"
-                );
-                return;
-            }
-            
-            String quantityInput = JOptionPane.showInputDialog(
-                this, "Enter Quantity:"
-            );
-
-            if (quantityInput == null || quantityInput.trim().isEmpty()) {
-                JOptionPane.showMessageDialog(
-                    this, "Please enter Quantity!"
-                );
-                return;
-            }
-
-            int quantity;
-
-            try {
-                quantity = Integer.parseInt(quantityInput.trim());
-
-                if (quantity < 0) {
-                    JOptionPane.showMessageDialog(
-                        this, "Quantity cannot be negative!"
-                    );
-                    return;
-                }
-
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(
-                    this, "Please enter a valid whole number for Quantity!"
-                );
-                return;
-            }
-            String priceInput = JOptionPane.showInputDialog(
-                this, "Enter Price:"
-            );
-
-            if (priceInput == null || priceInput.trim().isEmpty()) {
-                JOptionPane.showMessageDialog(
-                    this, "Please enter Price!"
-                );
-                return;
-            }
-
-            double price;
-
-            try {
-                price = Double.parseDouble(priceInput.trim());
-
-                if (price < 0) {
-                    JOptionPane.showMessageDialog(
-                        this, "Price cannot be negative!"
-                    );
-                    return;
-                }
-
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(
-                    this, "Please enter a valid number for Price!"
-                    );
-                    return;
-                }
-
-                 String supplierID = JOptionPane.showInputDialog(
-                    this, "Enter Supplier ID:"
-                );
-
-                if (supplierID == null || supplierID.trim().isEmpty()) {
-                    JOptionPane.showMessageDialog(
-                        this, "Please enter Supplier ID!"
-                    );
-                    return;
-                }
-
-                String[] product = {
-                    id.trim(), name.trim(), category.trim(), String.valueOf(quantity),String.valueOf(price),supplierID.trim()
-
-                };
-
-                
-              boolean saved = saveProduct(
-                id.trim(),
-                name.trim(),
-                category.trim(),
-                quantity,
-                price,
-                supplierID.trim()
-                );
-
-              if (saved) {
-              linkedList.add(new String []{
-                id.trim(),
-                name.trim(),
-                category.trim(),
-                String.valueOf(quantity),
-                String.valueOf(price),
-                supplierID.trim()
+                    linkedList.add(new String[]{
+                        id, name, category, String.valueOf(quantity),
+                        String.valueOf(price), supplierID
+                    });
+                    model.addRow(new Object[]{
+                        id, name, category, quantity, price, supplierID
+                    });
+                    lblTotal.setText("Total Products: " + linkedList.size());
+                    return true;
                 });
-
-              linkedList.add(product);
-
-              model.addRow(new Object[]{
-                 id.trim(),
-                 name.trim(),
-                 category.trim(),
-                 quantity,
-                 price,
-                 supplierID.trim()
-                 });
-
-              lblTotal.setText(
-                "Total Products: " + linkedList.size()
-                 );
-
-                JOptionPane.showMessageDialog(
-                this, "Product added successfully!"
-                 );
-                }
-
+            dialog.setVisible(true);
         }
-        
-        
+
         if (e.getSource() == btnUpdate) {
-
-    int selectedRow = tblProducts.getSelectedRow();
-
-    if (selectedRow == -1) {
-        JOptionPane.showMessageDialog(
-            this,
-            "Please select a product to update."
-        );
-        return;
-    }
-
-    String id = model.getValueAt(
-        selectedRow, 0
-    ).toString();
-
-    String name = JOptionPane.showInputDialog(
-        this, "Enter Product Name:",
-        model.getValueAt(selectedRow, 1)
-    );
-
-    if (name == null || name.trim().isEmpty()) {
-        return;
-    }
-
-    String category = JOptionPane.showInputDialog(
-        this, "Enter Category:",
-        model.getValueAt(selectedRow, 2)
-    );
-
-    if (category == null || category.trim().isEmpty()) {
-        return;
-    }
-
-    String quantityInput = JOptionPane.showInputDialog(
-        this, "Enter Quantity:",
-        model.getValueAt(selectedRow, 3)
-    );
-
-    if (quantityInput == null ||
-        quantityInput.trim().isEmpty()) {
-        return;
-    }
-
-    int quantity;
-
-    try {
-        quantity = Integer.parseInt(quantityInput.trim());
-
-        if (quantity < 0) {
-            JOptionPane.showMessageDialog(
-                this, "Quantity cannot be negative!"
-            );
-            return;
+            int viewRow = tblProducts.getSelectedRow();
+            if (viewRow == -1) {
+                JOptionPane.showMessageDialog(this, "Please select a product to update.");
+                return;
+            }
+            int row = tblProducts.convertRowIndexToModel(viewRow);
+            String[] product = new String[6];
+            for (int column = 0; column < product.length; column++) {
+                Object value = model.getValueAt(row, column);
+                product[column] = value == null ? "" : value.toString();
+            }
+            UpdateProductDialog dialog = new UpdateProductDialog(this,
+                (id, name, category, quantity, price, supplierID) -> {
+                    if (!updateProduct(id, name, category, quantity, price, supplierID)) {
+                        JOptionPane.showMessageDialog(this,
+                            "Product was not updated. Check the ID and details.");
+                        return false;
+                    }
+                    String[] updated = {id, name, category, String.valueOf(quantity),
+                        String.valueOf(price), supplierID};
+                    for (int i = 0; i < linkedList.size(); i++) {
+                        if (linkedList.get(i)[0].equals(id)) {
+                            linkedList.set(i, updated);
+                            break;
+                        }
+                    }
+                    Object[] values = {id, name, category, quantity, price, supplierID};
+                    for (int column = 0; column < values.length; column++) {
+                        model.setValueAt(values[column], row, column);
+                    }
+                    return true;
+                }, product);
+            dialog.setVisible(true);
         }
-
-    } catch (NumberFormatException ex) {
-        JOptionPane.showMessageDialog(
-            this, "Enter a valid whole number for Quantity!"
-        );
-        return;
-    }
-
-    String priceInput = JOptionPane.showInputDialog(
-        this, "Enter Price:",
-        model.getValueAt(selectedRow, 4)
-    );
-
-    if (priceInput == null || priceInput.trim().isEmpty()) {
-        return;
-    }
-
-    double price;
-
-    try {
-        price = Double.parseDouble(priceInput.trim());
-
-        if (!Double.isFinite(price) || price < 0) {
-            JOptionPane.showMessageDialog(
-                this, "Enter a valid non-negative Price!"
-            );
-            return;
-        }
-
-    } catch (NumberFormatException ex) {
-        JOptionPane.showMessageDialog(
-            this, "Enter a valid number for Price!"
-        );
-        return;
-    }
-
-    String supplierID = JOptionPane.showInputDialog(
-        this, "Enter Supplier ID:",
-        model.getValueAt(selectedRow, 5)
-    );
-
-    if (supplierID == null || supplierID.trim().isEmpty()) {
-        return;
-    }
-
-    try {
-        Long.parseLong(supplierID.trim());
-    } catch (NumberFormatException ex) {
-        JOptionPane.showMessageDialog(
-            this, "Supplier ID must be a whole number."
-        );
-        return;
-    }
-
-    boolean updated = updateProduct(
-        id,
-        name.trim(),
-        category.trim(),
-        quantity,
-        price,
-        supplierID.trim()
-        );
-
-    if (updated) {
-        loadProducts();
-
-        JOptionPane.showMessageDialog(
-            this, "Product updated successfully!"
-        );
-       }   
-    else {
-        JOptionPane.showMessageDialog(
-            this,
-            "Product was not updated. Check the ID and details."
-            );
-        }
-    }
-
-
-        
         if (e.getSource() == btnDelete) {
 
             int selectedRow = tblProducts.getSelectedRow();
@@ -496,7 +275,7 @@ public class Main extends JFrame implements ActionListener {
         if (confirm == JOptionPane.YES_OPTION) {
 
             String id = model.getValueAt(
-                selectedRow, 0
+                tblProducts.convertRowIndexToModel(selectedRow), 0
             ).toString();
 
             boolean deleted = deleteProduct(id);
@@ -519,42 +298,40 @@ public class Main extends JFrame implements ActionListener {
       }
     }
 
-        if (e.getSource() == btnSearch) {
-
-            String search = txtSearch.getText().trim();
-            boolean found = false;
-
-            for (int i = 0; i < model.getRowCount(); i++) {
-
-                String id = model.getValueAt(i, 0).toString();
-
-                if (id.equalsIgnoreCase(search)) {
-                    tblProducts.setRowSelectionInterval(i, i);
-                    found = true;
-                    break;
-                }
-            }
-
-            if (found) {
-                JOptionPane.showMessageDialog(
-                    this, "Product found!"
-                );
-            } else {
-                JOptionPane.showMessageDialog(
-                    this, "Product not found."
-                );
-            }
-        }
-
         if (e.getSource() == btnLogout) {
-            dispose();
+            int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Are you sure you want to log out?",
+                "Confirm Logout",
+                JOptionPane.YES_NO_OPTION
+            );
+
+            if (confirm == JOptionPane.YES_OPTION) {
+                System.exit(0);
+            }
         }
+    }
+
+    private void filterProducts() {
+        String search = txtSearch.getText().trim().toLowerCase(Locale.ROOT);
+        if (search.isEmpty()) {
+            productSorter.setRowFilter(null);
+            return;
+        }
+        productSorter.setRowFilter(new RowFilter<DefaultTableModel, Integer>() {
+            @Override
+            public boolean include(Entry<? extends DefaultTableModel, ? extends Integer> entry) {
+                String id = entry.getStringValue(0);
+                String name = entry.getStringValue(1).toLowerCase(Locale.ROOT);
+                return id.equalsIgnoreCase(search) || name.contains(search);
+            }
+        });
     }
 
      private void loadProducts() {
 
-        model.setRowCount(0);
-        linkedList.clear();
+        java.util.List<Object[]> rows = new ArrayList<>();
+        LinkedList<String[]> products = new LinkedList<>();
 
         String sql = "SELECT product_id, product_name, " +
             "category, quantity, price, supplier_id " +
@@ -582,18 +359,22 @@ public class Main extends JFrame implements ActionListener {
                         ? ""
                         : supplierValue.toString();
 
-                model.addRow(new Object[]{
+                rows.add(new Object[]{
                     id, name, category,
                     quantity, price, supplierID
                 });
 
-                linkedList.add(new String[]{
+                products.add(new String[]{
                     id, name, category,
                     String.valueOf(quantity),
                     String.valueOf(price), supplierID
                 });
             }
 
+            model.setRowCount(0);
+            linkedList.clear();
+            linkedList.addAll(products);
+            for (Object[] row : rows) model.addRow(row);
             lblTotal.setText(
                 "Total Products: " + model.getRowCount()
             );
@@ -626,6 +407,7 @@ public class Main extends JFrame implements ActionListener {
          java.sql.PreparedStatement ps =
              con.prepareStatement(sql)) {
 
+        if (!supplierExists(con, supplierID)) return false;
         ps.setString(1, name);
         ps.setString(2, category);
         ps.setInt(3, quantity);
@@ -695,6 +477,18 @@ public class Main extends JFrame implements ActionListener {
              java.sql.PreparedStatement ps =
                  con.prepareStatement(sql)) {
 
+            try (java.sql.PreparedStatement check = con.prepareStatement(
+                    "SELECT product_id FROM products WHERE product_id = ?")) {
+                check.setLong(1, Long.parseLong(id));
+                try (java.sql.ResultSet rs = check.executeQuery()) {
+                    if (rs.next()) {
+                        JOptionPane.showMessageDialog(this, "Product ID already exists!");
+                        return false;
+                    }
+                }
+            }
+
+            if (!supplierExists(con, supplierID)) return false;
             ps.setLong(1, Long.parseLong(id));
             ps.setString(2, name);
             ps.setString(3, category);
@@ -714,6 +508,19 @@ public class Main extends JFrame implements ActionListener {
             );
             return false;
         }
-    } 
+    }
+
+    private boolean supplierExists(Connection con, String supplierID) throws SQLException {
+        try (PreparedStatement check = con.prepareStatement(
+                "SELECT supplier_id FROM suppliers WHERE supplier_id = ?")) {
+            check.setLong(1, Long.parseLong(supplierID));
+            try (ResultSet rs = check.executeQuery()) {
+                if (rs.next()) return true;
+            }
+        }
+        JOptionPane.showMessageDialog(this,
+            "Supplier ID does not exist. Please choose an existing supplier.");
+        return false;
+    }
  }    
  
