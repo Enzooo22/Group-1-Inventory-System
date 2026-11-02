@@ -180,6 +180,7 @@ public class Main extends JFrame implements ActionListener {
         btnDelete.addActionListener(this);
         btnLogout.addActionListener(this);
 
+        
         loadProducts();
         setLocationRelativeTo(null);
         setVisible(true);
