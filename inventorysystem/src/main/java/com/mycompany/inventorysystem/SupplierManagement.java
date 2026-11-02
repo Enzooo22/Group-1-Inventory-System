@@ -1,6 +1,8 @@
 
 package com.mycompany.inventorysystem;
 
+import java.awt.Color;
+import java.awt.Font;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.*;
@@ -26,9 +28,14 @@ public class SupplierManagement extends JFrame
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setLayout(null);
         setResizable(false);
+        getContentPane().setBackground(new Color(255, 241, 242));
 
-        lblTitle = new JLabel("SUPPLIER MANAGEMENT");
+        Color red = new Color(255, 120, 120);
+        Color softRed = new Color(255, 205, 210);
+
+        lblTitle = new JLabel("SUPPLIER MANAGEMENT", SwingConstants.CENTER);
         lblTitle.setBounds(350, 20, 300, 30);
+        lblTitle.setFont(new Font("Arial", Font.BOLD, 20));
         add(lblTitle);
 
         txtSearch = new JTextField();
@@ -37,22 +44,31 @@ public class SupplierManagement extends JFrame
         txtSearch.setToolTipText("Search by Supplier ID or Supplier Name");
         JLabel searchLabel = new JLabel("Search by Supplier ID or Name");
         searchLabel.setBounds(300, 80, 300, 30);
+        searchLabel.setFont(new Font("Arial", Font.BOLD, 16));
         add(searchLabel);
 
         btnAdd = new JButton("Add Supplier");
         btnAdd.setBounds(30, 130, 130, 30);
+        btnAdd.setBackground(red);
+        btnAdd.setForeground(Color.WHITE);
         add(btnAdd);
 
         btnUpdate = new JButton("Update");
         btnUpdate.setBounds(170, 130, 100, 30);
+        btnUpdate.setBackground(red);
+        btnUpdate.setForeground(Color.WHITE);
         add(btnUpdate);
 
         btnDelete = new JButton("Delete");
         btnDelete.setBounds(280, 130, 100, 30);
+        btnDelete.setBackground(red);
+        btnDelete.setForeground(Color.WHITE);
         add(btnDelete);
 
         btnBack = new JButton("Back");
         btnBack.setBounds(800, 130, 100, 30);
+        btnBack.setBackground(red);
+        btnBack.setForeground(Color.WHITE);
         add(btnBack);
 
         String[] columns = {
@@ -73,6 +89,14 @@ public class SupplierManagement extends JFrame
             }
         };
         tblSuppliers = new JTable(model);
+        tblSuppliers.setForeground(Color.BLACK);
+        tblSuppliers.setBackground(Color.WHITE);
+        tblSuppliers.getTableHeader().setBackground(new Color(198, 40, 40));
+        tblSuppliers.getTableHeader().setForeground(Color.WHITE);
+        tblSuppliers.setSelectionBackground(softRed);
+        tblSuppliers.setSelectionForeground(Color.BLACK);
+        tblSuppliers.setGridColor(new Color(240, 180, 180));
+        tblSuppliers.setShowGrid(true);
         sorter = new javax.swing.table.TableRowSorter<>(model);
         sorter.setSortsOnUpdates(true);
         tblSuppliers.setRowSorter(sorter);
@@ -86,6 +110,8 @@ public class SupplierManagement extends JFrame
         new JScrollPane(tblSuppliers);
 
         scrollPane.setBounds(30, 190, 870, 330);
+        scrollPane.getViewport().setBackground(Color.WHITE);
+        scrollPane.setBorder(BorderFactory.createLineBorder(softRed, 1));
         add(scrollPane);
 
         btnAdd.addActionListener(this);
