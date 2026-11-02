@@ -115,35 +115,24 @@ public class Login extends JFrame implements ActionListener {
 
         if (e.getSource() == btnLogin) {
 
-            String username =
-                txtUsername.getText().trim();
-
-            String password =
-                new String(txtPassword.getPassword());
+            String username = txtUsername.getText().trim();
+            String password = new String(txtPassword.getPassword());
 
             if (username.isEmpty() || password.isEmpty()) {
-                JOptionPane.showMessageDialog(
-                    this,
-                    "Please enter username and password."
-                );
+                JOptionPane.showMessageDialog(this,"Please enter username and password.");
                 return;
             }
 
             if (checkLogin(username, password)) {
 
-                JOptionPane.showMessageDialog(
-                    this, "Login successful!"
-                );
-
-                dispose();
-
-                new Main();
+                JOptionPane.showMessageDialog(this, "Login successful!");
+                
+                Main m = new Main();
+                m.setVisible(true);
+                this.dispose();
 
             } else {
-                JOptionPane.showMessageDialog(
-                    this,
-                    "Invalid username or password."
-                );
+                JOptionPane.showMessageDialog(this,"Invalid username or password.");
 
                 txtPassword.setText("");
                 txtPassword.requestFocus();
