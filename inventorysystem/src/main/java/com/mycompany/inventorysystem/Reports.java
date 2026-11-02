@@ -43,6 +43,7 @@ public class Reports extends JFrame {
         title.setBounds(250, 15, 600, 30);
         add(title);
         
+        
         refresh = new JButton("Refresh");
         refresh.setBounds(890, 15, 120, 30);
         refresh.addActionListener(e -> loadReports());

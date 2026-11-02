@@ -66,6 +66,7 @@ public class SupplierManagement extends JFrame
         btnAdd.setForeground(Color.WHITE);
         buttonPanel.add(btnAdd);
 
+        
         btnUpdate = new JButton("Update");
         btnUpdate.setBounds(150, 15, 100, 30);
         btnUpdate.setBackground(red);
