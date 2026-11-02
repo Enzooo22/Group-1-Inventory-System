@@ -5,7 +5,11 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedList;
+import java.util.Locale;
 
 public class Main extends JFrame implements ActionListener {
 
@@ -18,12 +22,10 @@ public class Main extends JFrame implements ActionListener {
     private JButton btnSuppliers;
     private JButton btnReports, btnAdd, btnUpdate;
     private JButton btnDelete, btnLogout;
-
+    private JScrollPane scrollPane;
     private JPanel sidebar, content;
-    
     private JTable tblSuppliers;
     private DefaultTableModel supplierModel;
-
     private JTextField txtSupplierSearch;
 
     private JButton btnAddSupplier;
@@ -167,7 +169,7 @@ public class Main extends JFrame implements ActionListener {
                 }
             });
 
-        JScrollPane scrollPane = new JScrollPane(tblProducts);
+        scrollPane = new JScrollPane(tblProducts);
         scrollPane.setBounds(20, 185, 730, 335);
         content.add(scrollPane);
 
@@ -178,6 +180,7 @@ public class Main extends JFrame implements ActionListener {
         btnDelete.addActionListener(this);
         btnLogout.addActionListener(this);
 
+        
         loadProducts();
         setLocationRelativeTo(null);
         setVisible(true);
@@ -191,7 +194,9 @@ public class Main extends JFrame implements ActionListener {
     public void actionPerformed(ActionEvent e) {
 
         if (e.getSource() == btnSuppliers) {
-        new SupplierManagement();
+        SupplierManagement m = new SupplierManagement();
+        m.setVisible(true);
+        this.dispose();
 }
         
         if (e.getSource() == btnReports) {

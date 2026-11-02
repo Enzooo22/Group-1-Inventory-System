@@ -1,8 +1,12 @@
 
 package com.mycompany.inventorysystem;
 
+import java.awt.Color;
+import java.awt.Font;
+import javax.swing.event.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 import java.awt.event.*;
 import java.sql.*;
 
@@ -11,13 +15,14 @@ public class SupplierManagement extends JFrame
 
     private JLabel lblTitle;
     private JTextField txtSearch;
-
+    private JScrollPane scrollPane;
     private JTable tblSuppliers;
     private DefaultTableModel model;
-    private javax.swing.table.TableRowSorter<DefaultTableModel> sorter;
-
+    private TableRowSorter<DefaultTableModel> sorter;
+    private JLabel searchLabel;
     private JButton btnAdd, btnUpdate;
     private JButton btnDelete, btnBack;
+    private JPanel buttonPanel;
 
     SupplierManagement() {
 
@@ -26,34 +31,60 @@ public class SupplierManagement extends JFrame
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setLayout(null);
         setResizable(false);
+        setBackground(new Color(255, 241, 242));
 
-        lblTitle = new JLabel("SUPPLIER MANAGEMENT");
+       
+        Color red = new Color(255, 120, 120);
+        Color black = new Color(35, 35, 35);
+        Color softRed = new Color(255, 205, 210);
+        Color darkText = new Color(60, 30, 30);
+
+        
+        lblTitle = new JLabel("SUPPLIER MANAGEMENT", SwingConstants.CENTER);
         lblTitle.setBounds(350, 20, 300, 30);
+        lblTitle.setFont(new Font ("Arial", Font.BOLD, 20));
         add(lblTitle);
 
         txtSearch = new JTextField();
         txtSearch.setBounds(30, 80, 250, 30);
         add(txtSearch);
         txtSearch.setToolTipText("Search by Supplier ID or Supplier Name");
-        JLabel searchLabel = new JLabel("Search by Supplier ID or Name");
+        
+        searchLabel = new JLabel("Search by Supplier ID or Name");
         searchLabel.setBounds(300, 80, 300, 30);
+        searchLabel.setFont(new Font("Arial",Font.BOLD, 16));
         add(searchLabel);
 
-        btnAdd = new JButton("Add Supplier");
-        btnAdd.setBounds(30, 130, 130, 30);
-        add(btnAdd);
+        buttonPanel = new JPanel();
+        buttonPanel.setBounds(20, 115, 900, 60);
+        buttonPanel.setLayout(null);
+        buttonPanel.setBackground(new Color(255, 241, 242));    
 
+        btnAdd = new JButton("Add Supplier");
+        btnAdd.setBounds(10, 15, 130, 30);
+        btnAdd.setBackground(red);
+        btnAdd.setForeground(Color.WHITE);
+        buttonPanel.add(btnAdd);
+
+        
         btnUpdate = new JButton("Update");
-        btnUpdate.setBounds(170, 130, 100, 30);
-        add(btnUpdate);
+        btnUpdate.setBounds(150, 15, 100, 30);
+        btnUpdate.setBackground(red);
+        btnUpdate.setForeground(Color.WHITE);
+        buttonPanel.add(btnUpdate);
 
         btnDelete = new JButton("Delete");
-        btnDelete.setBounds(280, 130, 100, 30);
-        add(btnDelete);
+        btnDelete.setBounds(260, 15, 100, 30);
+        btnDelete.setBackground(red);
+        btnDelete.setForeground(Color.WHITE);
+        buttonPanel.add(btnDelete);
 
         btnBack = new JButton("Back");
-        btnBack.setBounds(800, 130, 100, 30);
-        add(btnBack);
+        btnBack.setBounds(780, 15, 100, 30);
+        btnBack.setBackground(red);
+        btnBack.setForeground(Color.WHITE);
+        buttonPanel.add(btnBack);
+        add(buttonPanel);
 
         String[] columns = {
             "Supplier ID",
@@ -73,25 +104,38 @@ public class SupplierManagement extends JFrame
             }
         };
         tblSuppliers = new JTable(model);
-        sorter = new javax.swing.table.TableRowSorter<>(model);
+        sorter = new TableRowSorter<>(model);
         sorter.setSortsOnUpdates(true);
         tblSuppliers.setRowSorter(sorter);
-        txtSearch.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
-            public void insertUpdate(javax.swing.event.DocumentEvent e) { filterSuppliers(); }
-            public void removeUpdate(javax.swing.event.DocumentEvent e) { filterSuppliers(); }
-            public void changedUpdate(javax.swing.event.DocumentEvent e) { filterSuppliers(); }
+        txtSearch.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) { filterSuppliers(); }
+            public void removeUpdate(DocumentEvent e) { filterSuppliers(); }
+            public void changedUpdate(DocumentEvent e) { filterSuppliers(); }
         });
+        
+        tblSuppliers.setSelectionBackground(softRed);
+        tblSuppliers.setSelectionForeground(darkText);
+        tblSuppliers.setGridColor(new Color(240, 180, 180));
+        tblSuppliers.setShowGrid(true);
+        tblSuppliers.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tblSuppliers.setForeground(Color.black);
+        tblSuppliers.setBackground(Color.WHITE);
+        tblSuppliers.getTableHeader().setBackground(new Color(198, 40 ,40));
+        tblSuppliers.getTableHeader().setForeground(Color.WHITE);
+        tblSuppliers.setSelectionBackground(new Color(255, 205, 210));
+        tblSuppliers.setSelectionForeground(Color.BLACK);
+        tblSuppliers.setGridColor(new Color(240, 180, 180));
 
-        JScrollPane scrollPane =
-        new JScrollPane(tblSuppliers);
-
+        scrollPane = new JScrollPane(tblSuppliers);
         scrollPane.setBounds(30, 190, 870, 330);
+        scrollPane.getViewport().setBackground(Color.WHITE);
+        scrollPane.setBorder(BorderFactory.createLineBorder(softRed, 1));
         add(scrollPane);
 
         btnAdd.addActionListener(this);
         btnUpdate.addActionListener(this);
         btnDelete.addActionListener(this);
-
         btnBack.addActionListener(this);
 
         loadSuppliers();
